@@ -1,6 +1,6 @@
-# Front end for src/nearly_neutral_poplist.jl
+# Front end for src/nn_poplist.jl
 # For the case where selection coefficients are drawn from a gamma distribution or a double-sided gamma distributions
-include("../src/NeutralCulturalEvolution.jl")
+include("../src/NearlyNeutral.jl")
 if length(ARGS) == 0
   simname = "../experiments/examples/fi_example2"
 else
@@ -123,7 +123,7 @@ function run_trials(popsize_multiplier_list::Vector{Int64}=[1]; mu_list_flag::Bo
   N = N_list[1]
   n = Int(floor(N*(1//popsize_multiplier_list[1])))
   if !mu_list_flag
-    tr = trial_result( nn_simtype, n, N, N_mu_list[1], ngens, fix_minimum, burn_in, NeutralCulturalEvolution.dfe_mod, dfe_s_list[1], dfe_modulus )
+    tr = trial_result( nn_simtype, n, N, N_mu_list[1], ngens, fix_minimum, burn_in, NearlyNeutral.dfe_mod, dfe_s_list[1], dfe_modulus )
     writeheader(stream, popsize_multiplier_list, N_list, N_mu_list, tr )
     for dfe_s in dfe_s_list
       dfe = x->dfe_mod( x, modulus=dfe_modulus, fit_inc=1.0+dfe_s )
@@ -188,7 +188,7 @@ function run_trial( tr::trial_result )
   if tr.nn_simtype == 1
     println("dfe(tr.dfe_modulus): ",tr.dfe(tr.dfe_modulus))
     ic = innovation_collection( tr.N, tr.fix_minimum )
-    poplist = nearly_neutral_poplist(tr.N,tr.N_mu,tr.ngens,tr.dfe,combine=false,ic=ic)
+    poplist = nn_poplist(tr.N,tr.N_mu,tr.ngens,tr.dfe,combine=false,ic=ic)
     convert_to_trial_result( ic, tr )
     if tr.n < tr.N
       poplist = map(x->sample_population(x,tr.n),poplist)

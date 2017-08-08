@@ -27,3 +27,10 @@ There three models:  infinite alleles, infinite sites, and fixed selection coeff
 The top-level program for infinite alleles is experiments/n_neutral.jl; the top-level
 program for infinite sites is experiments/n_infsites.jl, and top-level program for 
 fixed is experiments/n_fixed.jl.
+
+Some of the "files" in the src folder are symbolic links.  For example:
+aliases.jl -> ../../cultural-neutrality/src/aliases.jl
+To make these work, the  um-tech-evolution/cultural-neutrality  respository
+must be installed in the same subdirectory as the um-tech-evolution/nearly-neutral
+repository.
+
