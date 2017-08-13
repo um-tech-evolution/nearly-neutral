@@ -1,12 +1,20 @@
 # Front end for src/nn_poplist.jl
 include("../src/InfAlleles.jl")
+#export trial_result
 if length(ARGS) == 0
   simname = "../experiments/examples/nn_example1"
 else
   simname = ARGS[1]
+  if length(ARGS) >= 2   # second command-line argument is random number seed
+    seed = parse(Int,ARGS[2])
+    println("seed: ",seed)
+    srand(seed)
+  end
 end
+#println("InfAlleles.use_poplist: ",InfAlleles.use_poplist)
 include("$(simname).jl")
 println("simname: ",simname)
+println("nn_simtype: ",nn_simtype)
 stream = open("$(simname).csv","w")
 println("stream: ",stream)
 
@@ -17,80 +25,19 @@ if !isdefined(:mu_list_flag)
   mu_list_flag=false
 end
 
-
-@doc """ type trial_result
-  A universal trial result for all run_trials functions
-  Constructors for specific cases are defined below.
-"""
-type trial_result
-  nn_simtype::Int64
-  n::Int64    # sample size, must be <= N
-  N::Int64    # popsize
-  N_mu::Float64  # N*mu, population mutation rate
-  ngens::Int64
-  burn_in::Float64
-  dfe::Function
-  dfe_str::AbstractString
-  expected_richness::Float64  # sum_{i=0}^{n-1} theta/(theta+i) where theta = 2*N_mu.
-  average_richness::Float64   # Average number of traits in populations
-  expected_w_homoz::Float64
-  w_homoz::Float64
-  IQV::Float64
-end
-
-function add_expected_richness( tr::trial_result )
-  sum = 0.0
-  theta = 2*tr.N_mu
-  for i = 0:(tr.N-1)
-    sum += 1.0/(theta+i)
-  end
-  tr.expected_richness = theta*sum
-end
-
-# Constructor that sets the parameters
-function trial_result( nn_symtype::Int64, n::Int64, N::Int64, N_mu::Float64, ngens::Int64,
-    burn_in::Float64=2.0, dfe::Function=dfe_neutral, 
-    dfe_str::AbstractString="neutral" )
-  tr = trial_result( nn_simtype, n, N, N_mu, ngens, burn_in, dfe, dfe_str, 0.0, 0.0, 0.0, 0.0, 0.0 )
-  add_expected_richness( tr )
-  tr
-end
-
-
-function print_trial_result( tr::trial_result )
-  if tr.nn_simtype == 1
-    println("\ninfinite alleleles model")
-  else
-    println("nn_simtype: ", tr.nn_simtype)
-  end
-  println("n: ", tr.n)
-  println("N: ", tr.N)
-  println("N_mu: ", tr.N_mu)
-  println("mu: ", tr.N_mu/tr.N)
-  println("ngens: ", tr.ngens)
-  println("burn_in: ", tr.burn_in)
-  println("dfe: ", tr.dfe)
-  println("dfe_str: ", tr.dfe_str)
-  println("expected richness: ",tr.expected_richness)
-  println("average richness: ",tr.average_richness)
-  println("expected_w_homoz: ",tr.expected_w_homoz)
-  println("w_homoz: ",tr.w_homoz)
-  println("IQV: ",tr.IQV)
-end
-
 function run_trials(popsize_multiplier_list::Vector{Int64}=[1]; mu_list_flag::Bool=false)
   println("stream: ",stream)
   trial = 1
   N = N_list[1]
   n = Int(floor(N*(1//popsize_multiplier_list[1])))
   if !mu_list_flag
-    tr = trial_result( nn_simtype, n, N, N_mu_list[1], ngens, burn_in, dfe, dfe_str )
+    tr = trial_result( nn_simtype, n, N, N_mu_list[1], ngens, burn_in, dfe, dfe_str, use_poplist=use_poplist )
     writeheader(stream, popsize_multiplier_list, N_list, N_mu_list, tr )
     for N_mu in N_mu_list
       for N in N_list
         for psize_m in popsize_multiplier_list
           n = Int(floor(N*(1//psize_m)))
-          tr = trial_result( nn_simtype, n, N, N_mu, ngens, burn_in, dfe, dfe_str )
+          tr = trial_result( nn_simtype, n, N, N_mu, ngens, burn_in, dfe, dfe_str, use_poplist=use_poplist )
           run_trial( tr )
           writerow(stream, trial, tr )
           trial += 1
@@ -98,14 +45,14 @@ function run_trials(popsize_multiplier_list::Vector{Int64}=[1]; mu_list_flag::Bo
       end
     end
   else  # if mu_list_flag
-    tr = trial_result( nn_simtype, n, N, N*mu_list[1], ngens, burn_in, dfe, dfe_str )
+    tr = trial_result( nn_simtype, n, N, N*mu_list[1], ngens, burn_in, dfe, dfe_str, use_poplist=use_poplist )
     writeheader(stream, popsize_multiplier_list, N_list, mu_list, tr, mu_list_flag=mu_list_flag )
     for mu in mu_list
       for N in N_list
         for psize_m in popsize_multiplier_list
           n = Int(floor(N*(1//psize_m)))
           N_mu = N*mu
-          tr = trial_result( nn_simtype, n, N, N_mu, ngens, burn_in, dfe, dfe_str )
+          tr = trial_result( nn_simtype, n, N, N_mu, ngens, burn_in, dfe, dfe_str, use_poplist=use_poplist )
           run_trial( tr )
           writerow(stream, trial, tr, mu_list_flag=mu_list_flag )
           trial += 1
@@ -120,7 +67,7 @@ function run_trials_mu(popsize_multiplier_list::Vector{Int64}=[1])
   trial = 1
   N = N_list[1]
   n = Int(floor(N*(1//popsize_multiplier_list[1])))
-  tr = trial_result( nn_simtype, n, N, N*mu_list[1], ngens, burn_in, dfe, dfe_str )
+  tr = trial_result( nn_simtype, n, N, N*mu_list[1], ngens, burn_in, dfe, dfe_str, use_poplist=use_poplist )
   writeheader(stream, popsize_multiplier_list, N_list, mu_list, tr )
   for mu in mu_list
     for N in N_list
@@ -138,11 +85,17 @@ end
 
 function run_trial( tr::trial_result )
   if tr.nn_simtype == 1
-    poplist = nn_poplist(tr.N,tr.N_mu,tr.ngens,tr.dfe,combine=false)
-    if tr.n < tr.N
-      poplist = map(x->sample_population(x,tr.n),poplist)
+    #println("tr.use_poplist: ",tr.use_poplist)
+    if tr.use_poplist
+      poplist = nn_poplist(tr,combine=false)
+      if tr.n < tr.N
+        poplist = map(x->sample_population(x,tr.n),poplist)
+      end
+      add_stats_to_trial_result!( tr, poplist )
+    else
+      nn_poplist(tr,combine=false)
+      # TODO  what to do if tr.n < tr.N?
     end
-    add_stats_to_trial_result!( tr, poplist )
     print_trial_result( tr )
     return tr
   else
@@ -150,12 +103,27 @@ function run_trial( tr::trial_result )
   end
 end
 
+function stddev(lst)
+  N = length(lst)
+  sqrt(mapreduce(x->x^2,+,lst)/(N-1) - sum(lst)^2/N/(N-1))
+end
+
 function add_stats_to_trial_result!( tr::trial_result, poplist::Vector{Population} )
   pcounts = map(pop_counts64,poplist)
-  tr.average_richness = mean(map(x->length(x),pcounts))
-  tr.expected_w_homoz = 1.0/(1.0+2.0*tr.N_mu)
-  tr.w_homoz = mean(map(watterson_homozygosity,pcounts))
-  tr.IQV = mean(map(IQV,pcounts))
+  richness_list = map(x->length(x),pcounts)
+  @assert isapprox( tr.average_richness, mean(richness_list) )
+  tr.average_richness = mean(richness_list)
+  @assert isapprox( tr.stderr_richness, stddev(richness_list)/sqrt(length(richness_list) ) ) 
+  tr.stderr_richness = stddev(richness_list)/sqrt(length(richness_list))
+  w_homoz_list = map(watterson_homozygosity,pcounts)
+  @assert isapprox( tr.w_homoz, mean(w_homoz_list ) )
+  tr.w_homoz = mean(w_homoz_list)
+  tr.stderr_w_homoz = stddev(w_homoz_list)/sqrt(length(w_homoz_list) )
+  IQV_list = map(IQV,pcounts)
+  @assert isapprox( tr.IQV, mean(IQV_list) )
+  tr.IQV = mean(IQV_list)
+  @assert isapprox( tr.stderr_IQV, stddev(IQV_list)/sqrt(length(IQV_list)) )
+  tr.stderr_IQV = stddev(IQV_list)/sqrt(length(IQV_list))
 end
 
 @doc """ function writeheader()
@@ -189,9 +157,12 @@ function writeheader(stream::IO, popsize_multiplier_list::Vector{Int64}, N_list:
   last_heads =
   [ "expected_richness",
     "average_richness",
+    "stderr_richness",
     "expected_w_heteroz",
     "w_heteroz",
-    "IQV"
+    "stderr_heteroz",
+    "IQV",
+    "stderr_IQV"
   ] 
   line = join(vcat( first_heads, last_heads), ",")
   write(stream, line, "\n")
@@ -210,9 +181,12 @@ function writerow(stream::IO, trial::Int64, tr::trial_result; mu_list_flag::Bool
     mid = Any[
       tr.expected_richness,
       tr.average_richness,
+      tr.stderr_richness,
       1.0-tr.expected_w_homoz,
       1.0-tr.w_homoz,
-      tr.IQV
+      tr.stderr_w_homoz,
+      tr.IQV,
+      tr.stderr_IQV
     ]
   end
   line = join( vcat( first, mid ), "," )

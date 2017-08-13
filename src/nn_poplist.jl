@@ -1,7 +1,75 @@
-export dfe_fitness, fitness, nn_poplist, pop_counts64, dfe_deleterious,dfe_advantageous, dfe_mixed, 
-    dfe_mod, dfe_neutral, dfe_fixed
+export trial_result, print_trial_result, dfe_fitness, fitness, nn_poplist, pop_counts64, 
+    dfe_deleterious,dfe_advantageous, dfe_mixed, dfe_mod, dfe_neutral, dfe_fixed 
 
 #using Distributions
+
+@doc """ type trial_result
+  A universal trial result for all run_trials functions
+  Constructors for specific cases are defined below.
+"""
+type trial_result
+  nn_simtype::Int64
+  n::Int64    # sample size, must be <= N
+  N::Int64    # popsize
+  N_mu::Float64  # N*mu, population mutation rate
+  ngens::Int64
+  burn_in::Float64
+  dfe::Function
+  dfe_str::AbstractString
+  use_poplist::Bool
+  expected_richness::Float64  # sum_{i=0}^{n-1} theta/(theta+i) where theta = 2*N_mu.
+  average_richness::Float64   # Average number of traits in populations
+  stderr_richness::Float64
+  expected_w_homoz::Float64
+  w_homoz::Float64
+  stderr_w_homoz::Float64
+  IQV::Float64
+  stderr_IQV::Float64
+end
+
+# Constructor that sets the parameters
+function trial_result( nn_simtype::Int64, n::Int64, N::Int64, N_mu::Float64, ngens::Int64,  
+    burn_in::Float64=2.0, dfe::Function=dfe_neutral, 
+    dfe_str::AbstractString="neutral"; use_poplist=false )
+  tr = trial_result( nn_simtype, n, N, N_mu, ngens, burn_in, dfe, dfe_str, use_poplist, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 )
+  add_expected_richness( tr )
+  tr
+end
+
+
+function print_trial_result( tr::trial_result )
+  if tr.nn_simtype == 1
+    println("\ninfinite alleleles model")
+  else
+    println("nn_simtype: ", tr.nn_simtype)
+  end
+  println("n: ", tr.n)
+  println("N: ", tr.N)
+  println("N_mu: ", tr.N_mu)
+  println("mu: ", tr.N_mu/tr.N)
+  println("ngens: ", tr.ngens)
+  println("burn_in: ", tr.burn_in)
+  println("dfe: ", tr.dfe)
+  println("dfe_str: ", tr.dfe_str)
+  println("expected richness: ",tr.expected_richness)
+  println("average richness: ",tr.average_richness)
+  println("stderr richness: ",tr.stderr_richness)
+  println("expected_w_homoz: ",tr.expected_w_homoz)
+  println("w_homoz: ",tr.w_homoz)
+  println("stderr_w_homoz: ",tr.stderr_w_homoz)
+  println("IQV: ",tr.IQV)
+  println("stderr_IQV: ",tr.stderr_IQV)
+  println("use_poplist: ",tr.use_poplist)
+end
+
+function add_expected_richness( tr::trial_result )
+  sum = 0.0
+  theta = 2*tr.N_mu
+  for i = 0:(tr.N-1)
+    sum += 1.0/(theta+i)
+  end
+  tr.expected_richness = theta*sum
+end
 
 @doc """ function dfe_fitness( p::Int64, dfe::Function, fitness_table::Dict{Int64,Float64} )
 Fitness function as saveed in dictionary fitness_table.
@@ -21,57 +89,111 @@ end
     uniform_start::Bool=false )
 Note:  dfe is "distribution of fitness effects" function.  
 """
-function nn_poplist( N::Int64, N_mu::Float64, ngens::Int64, dfe::Function; burn_in::Float64=2.0, 
-    uniform_start::Bool=false, nnselect::Int64=1, combine::Bool=true)
+#function nn_poplist( N::Int64, N_mu::Float64, ngens::Int64, dfe::Function; burn_in::Float64=2.0, 
+#    uniform_start::Bool=false, nnselect::Int64=1, combine::Bool=true)
+function nn_poplist( tr::trial_result; uniform_start::Bool=false, nnselect::Int64=1, combine::Bool=true)
   global fitness_table = Dict{Int64,Float64}()
+  #tr.use_poplist=false
+  println("tr.use_poplist: ",tr.use_poplist)
   g_limit = 1000000  # upper limit of generations to wait for extinctions and fixations
-  int_burn_in = Int(round(burn_in*N/N_mu+50.0))
-  mu = N_mu/N
+  int_burn_in = Int(round(tr.burn_in*tr.N/tr.N_mu+50.0))
+  #println("int_burn_in: ",int_burn_in)
+  mu = tr.N_mu/tr.N
   if uniform_start  # All allele values start with the same value.  Start with a selective sweep.
-    poplist= Population[ Int64[1 for i = 1:N] ]
-    fit = dfe_fitness(1, dfe, fitness_table )  # set fitness of 1 to be dfe(1).
+    new_pop = Int64[1 for i = 1:tr.N] 
+    fit = dfe_fitness(1, tr.dfe, fitness_table )  # set fitness of 1 to be tr.dfe(1).
     new_id = 2
   else
-    poplist= Population[ collect(1:N) ]
+    new_pop = collect(1:tr.N)
     new_id = 1
-    for i = 1:N
+    for i = 1:tr.N
       # Note that dfe_advantageous(i), dfe_deleterious(i), dfe_mixed(i) do not depend on i, but dfe_mod(i) does depend on i
-      fit = dfe_fitness(i, dfe, fitness_table )  # set fitness of i to be dfe(i). 
+      fit = dfe_fitness(i, tr.dfe, fitness_table )  # set fitness of i to be tr.dfe(i). 
       new_id += 1
     end
+  end
+  if tr.use_poplist
+    poplist= Population[ new_pop ]
   end
   if combine
     pop_result = Population()
   end
   done = false
+  # Initialize statistics accumulators
+  sum_homoz = 0.0
+  sum_sq_homoz = 0.0
+  sum_IQV = 0.0
+  sum_sq_IQV = 0.0
+  sum_richness = 0.0
+  sum_sq_richness = 0.0
+  gcount = 0
+
   g = 2
-  while !done && g < g_limit+ngens+burn_in
-    for i in 1:N
+  while !done && g < g_limit+tr.ngens+int_burn_in
+    new_pop = deepcopy(new_pop)
+    for i in 1:tr.N
       if rand() < mu
-        poplist[g-1][i] = new_id
-        fit = dfe_fitness( new_id, dfe, fitness_table )  # Set fitness of new_id
-        if g > int_burn_in && g <= ngens+int_burn_in
+        new_pop[i] = new_id
+        fit = dfe_fitness( new_id, tr.dfe, fitness_table )  # Set fitness of new_id
+        if g > int_burn_in && g <= tr.ngens+int_burn_in
           #println("id: ",new_id,"  fit: ",fit)
         end
         new_id += 1
       end
     end
-    new_pop = propsel( poplist[g-1], dfe, fitness_table )
-    Base.push!( poplist, new_pop )
-    # TODO:  delete the next 3 lines and check that nothing is broken.
-    #if g >int_burn_in && g <= ngens + int_burn_in
-    #  u = unique(new_pop)
-    #end
-    if combine && g >= int_burn_in+1 && g <= ngens+int_burn_in
+    new_pop = propsel( new_pop, tr.dfe, fitness_table )
+
+    if g > int_burn_in
+      # Accumulate statistics
+      pcounts = pop_counts64(new_pop)
+      IQVvalue = IQV( pcounts )
+      sum_IQV += IQVvalue
+      sum_sq_IQV += IQVvalue^2
+      homoz = watterson_homozygosity( pcounts )
+      #println("g: ",g,"  new_pop: ",new_pop,"  pcounts: ",pcounts,"  homoz: ",homoz)
+      #println("length poplist: ",length(poplist))
+      sum_homoz += homoz
+      sum_sq_homoz += homoz^2
+      richness = length(pcounts)
+      sum_richness += richness
+      sum_sq_richness += richness^2
+      #println("g: ",g,"  richness: ",richness)
+      gcount += 1
+    end
+
+    if tr.use_poplist
+      Base.push!( poplist, new_pop )
+    end
+    if combine && g >= int_burn_in+1 && g <= tr.ngens+int_burn_in
       pop_result = vcat( pop_result, new_pop )
     end
     g += 1
-    done = (g > ngens+int_burn_in) 
+    done = (g > tr.ngens+int_burn_in) 
+    if g > int_burn_in
+      #println("g: ",g,"  poplist: ", poplist[int_burn_in+1:end])
+    end
   end
-  if combine
-    return [pop_result]
-  else
-    return poplist[int_burn_in+1:int_burn_in+ngens]
+  #println("gcount: ",gcount)
+  tr.expected_w_homoz = 1.0/(1.0+2.0*tr.N_mu)
+  tr.w_homoz = sum_homoz/gcount
+  tr.stderr_w_homoz = sqrt((sum_sq_homoz/(gcount-1) - sum_homoz^2/gcount/(gcount-1))/gcount)
+  tr.average_richness = sum_richness/gcount
+  #println("sum_richness: ",sum_richness)
+  #println("sum_sq_richness: ",sum_sq_richness)
+  tr.stderr_richness = sqrt((sum_sq_richness/(gcount-1) - sum_richness^2/gcount/(gcount-1))/gcount)
+  #println("tr.stderr_richness: ", tr.stderr_richness)
+  tr.IQV = sum_IQV/gcount
+  tr.stderr_IQV = sqrt((sum_sq_IQV/(gcount-1) - sum_IQV^2/gcount/(gcount-1))/gcount)
+  if tr.use_poplist
+    if combine
+      return [pop_result]
+    else
+      #println("int_burn_in+1: ",int_burn_in+1,"  int_burn_in+tr.ngens: ",int_burn_in+tr.ngens)
+      #println("poplist: ", poplist[int_burn_in+1:int_burn_in+tr.ngens])
+      return poplist[int_burn_in+1:int_burn_in+tr.ngens]
+      #println("poplist: ", poplist)
+      ##return poplist
+    end
   end
 end
 

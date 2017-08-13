@@ -11,6 +11,7 @@ const mu_list = [0.1, 0.02]
 const L = 1           # number of loci # not used in infinite alleles
 const ngens = 1000      # Generations after burn-in
 const burn_in= 2.0    # generations of burn_in as a multiple of N
+const use_poplist=false   # save a list of populations as a check of correctness
 dfe=dfe_neutral
 dfe_str = "dfe_neutral"
 
