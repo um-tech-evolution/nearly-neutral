@@ -135,9 +135,6 @@ function nn_poplist( tr::trial_result; uniform_start::Bool=false, nnselect::Int6
       if rand() < mu
         new_pop[i] = new_id
         fit = dfe_fitness( new_id, tr.dfe, fitness_table )  # Set fitness of new_id
-        if g > int_burn_in && g <= tr.ngens+int_burn_in
-          #println("id: ",new_id,"  fit: ",fit)
-        end
         new_id += 1
       end
     end
@@ -169,9 +166,6 @@ function nn_poplist( tr::trial_result; uniform_start::Bool=false, nnselect::Int6
     end
     g += 1
     done = (g > tr.ngens+int_burn_in) 
-    if g > int_burn_in
-      #println("g: ",g,"  poplist: ", poplist[int_burn_in+1:end])
-    end
   end
   #println("gcount: ",gcount)
   tr.expected_w_homoz = 1.0/(1.0+2.0*tr.N_mu)

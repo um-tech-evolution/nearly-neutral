@@ -1,5 +1,6 @@
 #! /usr/local/julia/bin/julia
 using DataFrames
+dfe_neutral(x) = 1.0
 if length(ARGS) == 0
   simname = "../experiments/examples/fix_example1"
 else
