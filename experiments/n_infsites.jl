@@ -1,7 +1,12 @@
+#=
+Example run from command line reading from the parameter file  examples/nn_example1.jl:
+$  julia n_infsites.jl examples/in_example1
+
+This run produces the output CSV file:  examples/in_example1.csv
+=#
 # Front-end for src/infsites.jl
-include("../src/NeutralCulturalEvolution.jl")
+include("../src/InfSites.jl")
 if length(ARGS) == 0
-  #simname = "../experiments/nn_configs/nn_example1"
   simname = "../experiments/configs/in_example1"
 else
   simname = ARGS[1]
@@ -18,9 +23,7 @@ println("stream: ",stream)
 
 current_dir = pwd()
 date_string = "../data/"*Dates.format(now(),"mm_dd_yy")*"/"
-try mkdir(date_string) catch end   # create today's directory with no error if it already exists
 println("date string: ",date_string)
-Ylist = [2,4,6,8,10]
 #println("Ylist: ",Ylist)
 if !isdefined(:mu_list_flag)
   mu_list_flag=false
@@ -32,7 +35,6 @@ type infs_result_type
   N::Int64
   N_mu::Float64
   ngens::Int64
-  burn_in::Float64
   dfe::Function
   dfe_str::AbstractString
   number_mutations::Int64
@@ -52,9 +54,8 @@ type infs_result_type
 end
 
 function infs_result( nn_simtype::Int64, N::Int64, N_mu::Float64, ngens::Int64,
-    burn_in::Float64=2.0, dfe::Function=dfe_neutral,
-    dfe_str::AbstractString="neutral" )
-  tr = infs_result_type( nn_simtype, N, N_mu, ngens, burn_in, dfe, dfe_str, 0, 0, 0, 0.0, 0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0,0 )
+     dfe::Function=dfe_neutral, dfe_str::AbstractString="neutral" )
+  tr = infs_result_type( nn_simtype, N, N_mu, ngens, dfe, dfe_str, 0, 0, 0, 0.0, 0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0,0 )
   tr
 end
 
@@ -74,7 +75,6 @@ function print_infs_result( tr::infs_result_type )
     println("N_mu: ", tr.N_mu)
   end
   println("ngens: ", tr.ngens)
-  println("burn_in: ", tr.burn_in)
   println("dfe: ", tr.dfe)
   println("dfe_str: ", tr.dfe_str)
   println("number_extinctions: ", tr.number_extinctions)
@@ -97,18 +97,20 @@ function run_trials( mu_list_flag::Bool=false)
   println("stream: ",stream)
   trial = 1
   N = N_list[1]
+  #=
   if isdefined(:popsize_multiplier_list)
     n = Int(floor(N*(1//popsize_multiplier_list[1])))
   else
     n=N
     popsize_multiplier_list=[1]
   end
+  =#
   if !mu_list_flag
-    tr = infs_result( nn_simtype, N, N_mu_list[1], ngens, burn_in, dfe, dfe_str )
+    tr = infs_result( nn_simtype, N, N_mu_list[1], ngens, dfe, dfe_str )
     writeheader(stream, N_list, tr, mu_list_flag=mu_list_flag )
     for N_mu in N_mu_list
       for N in N_list
-        tr = infs_result( nn_simtype, N, N_mu, ngens, burn_in, dfe, dfe_str )
+        tr = infs_result( nn_simtype, N, N_mu, ngens, dfe, dfe_str )
         run_trial( tr )
         writerow(stream, trial, tr )
         print_infs_result( tr )
@@ -116,12 +118,12 @@ function run_trials( mu_list_flag::Bool=false)
       end
     end
   else  # if mu_list_flag
-    tr = infs_result( nn_simtype, N, N*mu_list[1], ngens, burn_in, dfe, dfe_str )
+    tr = infs_result( nn_simtype, N, N*mu_list[1], ngens, dfe, dfe_str )
     writeheader(stream, N_list, tr, mu_list_flag=mu_list_flag )
     for mu in mu_list
       for N in N_list
         N_mu = N*mu
-        tr = infs_result( nn_simtype, N, N_mu, ngens, burn_in, dfe, dfe_str )
+        tr = infs_result( nn_simtype, N, N_mu, ngens, dfe, dfe_str )
         run_trial( tr )
         writerow(stream, trial, tr, mu_list_flag=mu_list_flag )
         print_infs_result( tr )
@@ -133,7 +135,7 @@ end
 
 function run_trial( tr::infs_result_type )
   if tr.nn_simtype == 2
-    ic = inf_sites( tr.N, tr.N_mu, tr.ngens, dfe=tr.dfe, burn_in=tr.burn_in )
+    ic = inf_sites( tr.N, tr.N_mu, tr.ngens, dfe=tr.dfe )
     tr.number_extinctions = length(ic.extinct)
     tr.number_fixations = length(ic.fixed)
     tr.count_fixed_del = ic.count_fixed_del
@@ -151,8 +153,7 @@ function run_trial( tr::infs_result_type )
   end
 end
 
-@doc """ function writeheader()
-    burn_in::Float64, slat_reps::Int64=100000 ) 
+@doc """ function writeheader(), slat_reps::Int64=100000 ) 
 Write header line for output CSV file that corresponds to stream.
 See the comments for run_simulation for a description of the parameters.
 """
@@ -165,7 +166,6 @@ function writeheader(stream::IO, N_list::Vector{Int64},
     "# N_list=\"$(N_list)\"",
     (mu_list_flag ? "# mu_list=\"$(mu_list)\"": "# N_mu_list=\"$(N_mu_list)\""),
     "# ngens=$(tr.ngens)",
-    "# burn_in=$(tr.burn_in)",
     "# dfe=$(tr.dfe)",
     "# dfe_str=$(tr.dfe_str)"
     ]

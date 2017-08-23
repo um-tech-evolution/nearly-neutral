@@ -5,7 +5,7 @@
 const nn_simtype = 2    # nearly neutral infinite alleles
 type_str = "N"
 mu_list_flag =true
-@everywhere const N_list     = [100,200]   # sample size, popsize N=  popsize_multiplier*n
+@everywhere const N_list     = [100,200]   
 average_by_generations=true
 const mu_list= [0.01,0.02]   # Mutation rate 
 const L = 1           # number of loci # not used in infinite alleles

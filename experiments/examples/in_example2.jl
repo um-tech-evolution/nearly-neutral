@@ -7,8 +7,8 @@ end
 
 const type_str = "D4"
 const mu_list_flag = false
-const nn_simtype = 2    # nearly neutral infinite alleles
-@everywhere const N_list     = [100,200]   # sample size, popsize N=  popsize_multiplier*n
+const nn_simtype = 2    # nearly neutral infinite sites
+const N_list     = [100,200]   
 const N_mu_list= [1.0,2.0]   # Mutation rate as a multiple of 1.0/N
 const L = 1           # number of loci # not used in infinite alleles
 const ngens = 1000      # Generations after burn-in

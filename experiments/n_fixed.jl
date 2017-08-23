@@ -1,6 +1,10 @@
+# As of 8/23/2017, this program does not fully run.
+# Since the "fixed" option is not used in the current nearly-neutral paper, this option has not been kept up to date.
 # Front end for src/nn_poplist.jl
 # For the case where selection coefficients are drawn from a gamma distribution or a double-sided gamma distributions
-include("../src/NearlyNeutral.jl")
+#include("../src/NearlyNeutral.jl")
+#include("../src/InfAlleles.jl")
+include("../src/InfSites.jl")
 if length(ARGS) == 0
   simname = "../experiments/examples/fi_example2"
 else
@@ -123,7 +127,7 @@ function run_trials(popsize_multiplier_list::Vector{Int64}=[1]; mu_list_flag::Bo
   N = N_list[1]
   n = Int(floor(N*(1//popsize_multiplier_list[1])))
   if !mu_list_flag
-    tr = trial_result( nn_simtype, n, N, N_mu_list[1], ngens, fix_minimum, burn_in, NearlyNeutral.dfe_mod, dfe_s_list[1], dfe_modulus )
+    tr = trial_result( nn_simtype, n, N, N_mu_list[1], ngens, fix_minimum, burn_in, InfSites.dfe_mod, dfe_s_list[1], dfe_modulus )
     writeheader(stream, popsize_multiplier_list, N_list, N_mu_list, tr )
     for dfe_s in dfe_s_list
       dfe = x->dfe_mod( x, modulus=dfe_modulus, fit_inc=1.0+dfe_s )

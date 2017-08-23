@@ -16,7 +16,9 @@ type innovation_type
   final_gen::Int64    # the generation when the innovation went extinct.  Should be zero while innovation is evolving
   fitness_coefficient::Float64    # The selection coefficient of the innovation (allele)
   sum_counts::Int64   # the current accumulated sum of the counts per generation for infinite sites
+  sum_sq_counts::Int64   # the current accumulated sum of squares of the counts per generation for infinite sites
   sum_heteroz::Float64  # the current accumulated sum of heterozygosities for infinite sites
+  sum_sq_heteroz::Float64  # the current accumulated sum of squares ofheterozygosities for infinite sites
   previous_allele_freq::Int64  # Allele frequence of the previous generation
 end
 
@@ -26,7 +28,7 @@ end
 function innovation( id::Int64, N::Int64, start_gen::Int64, fitness_coef::Float64=1.0 )
   #println("innovation: id: ",id,"  N: ",N,"  start_gen: ",start_gen)
   initial_heteroz = 1.0 - watterson_homozygosity([N-1,1])
-  return innovation_type( id, start_gen, 0, fitness_coef, 1, initial_heteroz, 1  )
+  return innovation_type( id, start_gen, 0, fitness_coef, 1, 1, initial_heteroz, initial_heteroz^2, 1  )
 end
 
 #=
@@ -44,9 +46,8 @@ type innovation_collection
   sum_counts::Int64   # sum of counts of mutant alleles for infinite sites
   sum_sq_counts::Float64   # sum of counts of mutant alleles for infinite sites
   sum_heteroz::Float64  # sum of heterozygosities for infinite sites
-  sum_sq_heteroz::Float64  # sum of heterozygosities for infinite sites
+  sum_sq_heteroz::Float64  # sum of heterozygosities squared for infinite sites
   sum_generations::Int64  # Total number of generations corresponding to sum_counts and sum_heteroz
-  sum_sq_generations::Float64  # Total number of generations corresponding to sum_counts and sum_heteroz
   count_fixed_del::Int64  # Number of fixed mutations that are deleterious (fit_coef < 1.0)
   count_fixed_adv::Int64  # Number of fixed mutations that are advantageous (fit_coef > 1.0)
   in_use::Bool      # If false, not used
@@ -56,14 +57,14 @@ end
 function innovation_collection( N::Int64, in_use::Bool=true )  
   #innovation_collection( N, Dict{Int64,innovation_type}(), IntSet(), IntSet(), IntSet(), 1.0, 0, 0.0, 0,0,0, in_use )
   #innovation_collection( N, Dict{Int64,innovation_type}(), IntSet(), IntSet(), IntSet(), 1.0, 0,0, in_use )
-  innovation_collection( N, Dict{Int64,innovation_type}(), IntSet(), IntSet(), IntSet(), 1.0, 0, 0, 0.0, 0.0, 0, 0, 0, 0, in_use )
+  innovation_collection( N, Dict{Int64,innovation_type}(), IntSet(), IntSet(), IntSet(), 1.0, 0, 0, 0.0, 0.0, 0, 0, 0, in_use )
 end
 
 # Constructor for a new empty innovation collection with a value for fix_minimum
 function innovation_collection( N::Int64, fix_min::Float64, in_use::Bool=true )  
   #innovation_collection( N, Dict{Int64,innovation_type}(), IntSet(), IntSet(), IntSet(), fix_min, 0, 0.0, 0,0,0, in_use )
   #innovation_collection( N, Dict{Int64,innovation_type}(), IntSet(), IntSet(), IntSet(), fix_min, 0,0, in_use )
-  innovation_collection( N, Dict{Int64,innovation_type}(), IntSet(), IntSet(), IntSet(), fix_min, 0, 0, 0.0, 0.0, 0,0,0,0, in_use )
+  innovation_collection( N, Dict{Int64,innovation_type}(), IntSet(), IntSet(), IntSet(), fix_min, 0, 0, 0.0, 0.0, 0,0,0, in_use )
 end
 
 @doc """ ic_push!()
@@ -110,17 +111,19 @@ function update_innovations!( ic::innovation_collection, g::Int64, N::Int64 )
     innov = ic.list[index]
     if new_allele_freq > 0 && new_allele_freq < N
       innov.sum_counts += new_allele_freq
-      innov.sum_heteroz += 1.0 - watterson_homozygosity([N-new_allele_freq, new_allele_freq])
+      innov.sum_sq_counts += new_allele_freq^2
+      heteroz =  1.0 - watterson_homozygosity([N-new_allele_freq, new_allele_freq])
+      innov.sum_heteroz += heteroz
+      innov.sum_sq_heteroz += heteroz^2
     end
     #println("new_allele_freq: ",new_allele_freq,"  sum_counts: ",innov.sum_counts,"  sum_heteroz: ",innov.sum_heteroz)
     innov.previous_allele_freq = new_allele_freq  # save for the next call to update_selected.
     if new_allele_freq == 0 ||  new_allele_freq >= N 
       ic.sum_counts += innov.sum_counts
-      ic.sum_sq_counts += innov.sum_counts^2
+      ic.sum_sq_counts += innov.sum_sq_counts
       ic.sum_heteroz += innov.sum_heteroz
-      ic.sum_sq_heteroz += innov.sum_heteroz^2
+      ic.sum_sq_heteroz += innov.sum_sq_heteroz
       ic.sum_generations += g - innov.start_gen
-      ic.sum_sq_generations += (g - innov.start_gen)^2
       Base.pop!( ic.active,index)
       innov.final_gen = g
       if new_allele_freq == 0  # extinction
@@ -134,6 +137,7 @@ function update_innovations!( ic::innovation_collection, g::Int64, N::Int64 )
   end
 end
 
+#= TODO:  delete since infinite alleles no longer uses innovation collection
 @doc """ function update_innovations!( )
  Update all active innovations, and make some extinct and fixed
  This version is called by the infinite alleles model (either neutral_poplist.jl or nearly_neutral_poplist.jl).
@@ -157,6 +161,7 @@ function update_innovations!( ic::innovation_collection, g::Int64, N::Int64, pop
     end
   end
 end  
+=#
 
 @doc """ function update_neutral() 
   Updates site according to the Wright-Fisher model of drift.  
@@ -190,19 +195,6 @@ function N_inf_sites( ic::innovation_collection )
     sum_N += ic.list[index].history[end]
   end
   sum_N
-end
-
-# TODO:  Move to conformist_poplist.jl or delete
-function compute_turnovers( pop1::Population, pop2::Population, N_mu::Float64, Ylist::Vector{Int64},
-    Zsum_list::Vector{Int64}, count_list::Vector{Int64} )
-  i = 1
-  for y in Ylist
-    if Float64(y) < 5.0*N_mu
-      Zsum_list[i] += turnover( pop1, pop2, y )
-      count_list[i] += 1
-    end
-    i+= 1
-  end
 end
 
 function print_summary( ic::innovation_collection; print_lists::Bool=false )

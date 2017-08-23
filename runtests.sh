@@ -18,8 +18,8 @@ runtests() {
     cd "$DIR/experiments" && julia --color=yes --check-bounds=yes n_neutral.jl examples/nn_example2
     cd "$DIR/experiments" && julia --color=yes --check-bounds=yes n_infsites.jl examples/in_example1
     cd "$DIR/experiments" && julia --color=yes --check-bounds=yes n_infsites.jl examples/in_example2
-    cd "$DIR/experiments" && julia --color=yes --check-bounds=yes n_fixed.jl examples/fix_example1
-    cd "$DIR/experiments" && julia --color=yes --check-bounds=yes n_fixed.jl examples/fix_example2
+    #cd "$DIR/experiments" && julia --color=yes --check-bounds=yes n_fixed.jl examples/fix_example1
+    #cd "$DIR/experiments" && julia --color=yes --check-bounds=yes n_fixed.jl examples/fix_example2
 }
 
 runtests

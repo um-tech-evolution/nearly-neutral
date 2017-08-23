@@ -1,3 +1,9 @@
+#=
+Example run from command line reading from the parameter file  examples/nn_example1.jl:
+$  julia n_neutral.jl examples/nn_example1
+
+This run produces the output CSV file:  examples/nn_example1.csv
+=#
 # Front end for src/nn_poplist.jl
 include("../src/InfAlleles.jl")
 #export trial_result
