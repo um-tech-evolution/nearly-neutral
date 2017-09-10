@@ -79,22 +79,20 @@ Fitness function as saveed in dictionary fitness_table.
 """
 function dfe_fitness( p::Int64, dfe::Function, fitness_table::Dict{Int64,Float64} )
   val = get(fitness_table,p,-1.0)
-  #println("val; ",val)
   if val == -1.0   # p is not in fitness table
     val = dfe( p )
     fitness_table[p] = val
   end
-  #println("tbl: ",fitness_table)
   val
 end 
 
 @doc """ function nn_poplist( )
 This function does the iteration over generations for the infinite alleles model.
 Note:  dfe is "distribution of fitness effects" function.  
+In simulations for the nearly neutral paper, uniform_start and combine are both false.
 """
-function nn_poplist( tr::trial_result; uniform_start::Bool=false, nnselect::Int64=1, combine::Bool=true)
+function nn_poplist( tr::trial_result; uniform_start::Bool=false, combine::Bool=false)
   global fitness_table = Dict{Int64,Float64}()
-  println("tr.use_poplist: ",tr.use_poplist)
   g_limit = 1000000  # upper limit of generations to wait for extinctions and fixations
   int_burn_in = Int(round(tr.burn_in*tr.N/tr.N_mu+50.0))
   mu = tr.N_mu/tr.N

@@ -185,11 +185,9 @@ function writerow(stream::IO, trial::Int64, tr::trial_result; mu_list_flag::Bool
   write(stream, line, "\n")
 end
 
-#=
 # Top-level commands run when the file is loaded.
 if isdefined(:popsize_multiplier_list)
   run_trials(popsize_multiplier_list, mu_list_flag=mu_list_flag )
 else
   run_trials( mu_list_flag=mu_list_flag)
 end
-=#
