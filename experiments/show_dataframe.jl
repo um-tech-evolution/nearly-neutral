@@ -1,4 +1,5 @@
 #! /usr/local/julia/bin/julia
+# Julia program to show a CSV file as a Julia dataframe as text.
 using DataFrames
 dfe_neutral(x) = 1.0
 if length(ARGS) == 0

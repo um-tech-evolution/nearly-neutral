@@ -1,9 +1,10 @@
 #=
-Example run from command line reading from the parameter file  examples/nn_example1.jl:
-$  julia n_infsites.jl examples/in_example1
+Example run from command line reading from the parameter file  examples/nn_example?.jl (where ? = 1, 2, 3):
+$  julia n_infsites.jl examples/in_example?
 
-This run produces the output CSV file:  examples/in_example1.csv
+This run produces the output CSV file:  examples/in_example?.csv
 =#
+# The following are top-level commands run when the file is executed by julia.
 # Front-end for src/infsites.jl
 include("../src/InfSites.jl")
 if length(ARGS) == 0
@@ -24,11 +25,11 @@ println("stream: ",stream)
 current_dir = pwd()
 date_string = "../data/"*Dates.format(now(),"mm_dd_yy")*"/"
 println("date string: ",date_string)
-#println("Ylist: ",Ylist)
 if !isdefined(:mu_list_flag)
   mu_list_flag=false
 end
 
+# Note that there are more top-level commands at the end of the file
 
 type infs_result_type
   nn_simtype::Int64
@@ -45,8 +46,8 @@ type infs_result_type
   average_fitness_extinct::Float64
   average_fitness_fixed::Float64
   average_fitness_all::Float64
-  stderr_innovations_per_gen::Float64
-  average_innovations_per_gen::Float64
+  stderr_sites_per_gen::Float64
+  average_sites_per_gen::Float64
   average_heterozygosity_per_gen::Float64
   stderr_heterozygosity_per_gen::Float64
   count_fixed_del::Int64
@@ -86,8 +87,8 @@ function print_infs_result( tr::infs_result_type )
   println("average fitness_extinct: ", tr.average_fitness_extinct)
   println("average fitness_fixed: ", tr.average_fitness_fixed)
   println("average fitness_all: ", tr.average_fitness_all)
-  println("avg per generation count: ",tr.average_innovations_per_gen)
-  println("stderr per generation count: ",tr.stderr_innovations_per_gen)
+  println("avg per generation count: ",tr.average_sites_per_gen)
+  println("stderr per generation count: ",tr.stderr_sites_per_gen)
   println("avg per generation heterozygosity: ",tr.average_heterozygosity_per_gen)
   println("stderr per generation heterozygosity: ",tr.stderr_heterozygosity_per_gen)
   println()
@@ -145,7 +146,7 @@ function run_trial( tr::infs_result_type )
     tr.average_fitness_extinct = average_fitness_extinct(ic)
     tr.average_fitness_fixed = average_fitness_fixed(ic)
     tr.average_fitness_all = average_fitness_all(ic)
-    (tr.average_innovations_per_gen, tr.stderr_innovations_per_gen) = innovations_per_gen(ic)
+    (tr.average_sites_per_gen, tr.stderr_sites_per_gen) = sites_per_gen(ic)
     (tr.average_heterozygosity_per_gen, tr.stderr_heterozygosity_per_gen) = heterozygosity_per_gen(ic)
     return tr
   else
@@ -221,8 +222,8 @@ function writerow(stream::IO, trial::Int64, tr::infs_result_type; mu_list_flag::
       tr.average_fitness_extinct,
       tr.average_fitness_fixed,
       tr.average_fitness_all,
-      tr.average_innovations_per_gen,
-      tr.stderr_innovations_per_gen,
+      tr.average_sites_per_gen,
+      tr.stderr_sites_per_gen,
       tr.average_heterozygosity_per_gen,
       tr.stderr_heterozygosity_per_gen
     ]

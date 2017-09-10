@@ -5,8 +5,8 @@ $  julia n_neutral.jl examples/nn_example1
 This run produces the output CSV file:  examples/nn_example1.csv
 =#
 # Front end for src/nn_poplist.jl
+# The following are top-level commands run when the file is executed by julia.
 include("../src/InfAlleles.jl")
-#export trial_result
 if length(ARGS) == 0
   simname = "../experiments/examples/nn_example1"
 else
@@ -17,7 +17,6 @@ else
     srand(seed)
   end
 end
-#println("InfAlleles.use_poplist: ",InfAlleles.use_poplist)
 include("$(simname).jl")
 println("simname: ",simname)
 println("nn_simtype: ",nn_simtype)
@@ -31,6 +30,16 @@ if !isdefined(:mu_list_flag)
   mu_list_flag=false
 end
 
+# Note that there are more top-level commands at the end of the file
+
+@doc """ function run_trials()
+  Run multiple trials of the infinite alleles model.
+  popsize_multiplier_list  is a list of ratios of N to sample size n
+          For the nearly neutral paper, sampling is not used, so it is always the case that n==N.
+  There are 2 possibilities for iterating over mutation rate.
+   (1) mu_list_flag==true:    Then  mu_list  is a list of mutation rates.  
+   (2) mu_list_flag==false:   Then  N_mu_list  is a list of N_mu values.  N_mu is the product of N and mu.  This corresponds to constant theta.
+"""
 function run_trials(popsize_multiplier_list::Vector{Int64}=[1]; mu_list_flag::Bool=false)
   println("stream: ",stream)
   trial = 1
@@ -68,30 +77,8 @@ function run_trials(popsize_multiplier_list::Vector{Int64}=[1]; mu_list_flag::Bo
   end  # if !mu_list_flag
 end
 
-function run_trials_mu(popsize_multiplier_list::Vector{Int64}=[1])
-  println("stream: ",stream)
-  trial = 1
-  N = N_list[1]
-  n = Int(floor(N*(1//popsize_multiplier_list[1])))
-  tr = trial_result( nn_simtype, n, N, N*mu_list[1], ngens, burn_in, dfe, dfe_str, use_poplist=use_poplist )
-  writeheader(stream, popsize_multiplier_list, N_list, mu_list, tr )
-  for mu in mu_list
-    for N in N_list
-      for psize_m in popsize_multiplier_list
-        n = Int(floor(N*(1//psize_m)))
-        N_mu = N*mu
-        tr = trial_result( nn_simtype, n, N, N_mu, ngens, burn_in, dfe, dfe_str )
-        run_trial( tr )
-        writerow(stream, trial, tr )
-        trial += 1
-      end
-    end
-  end
-end
-
 function run_trial( tr::trial_result )
   if tr.nn_simtype == 1
-    #println("tr.use_poplist: ",tr.use_poplist)
     if tr.use_poplist
       poplist = nn_poplist(tr,combine=false)
       if tr.n < tr.N
@@ -100,7 +87,6 @@ function run_trial( tr::trial_result )
       add_stats_to_trial_result!( tr, poplist )
     else
       nn_poplist(tr,combine=false)
-      # TODO  what to do if tr.n < tr.N?
     end
     print_trial_result( tr )
     return tr
@@ -199,8 +185,11 @@ function writerow(stream::IO, trial::Int64, tr::trial_result; mu_list_flag::Bool
   write(stream, line, "\n")
 end
 
+#=
+# Top-level commands run when the file is loaded.
 if isdefined(:popsize_multiplier_list)
   run_trials(popsize_multiplier_list, mu_list_flag=mu_list_flag )
 else
   run_trials( mu_list_flag=mu_list_flag)
 end
+=#

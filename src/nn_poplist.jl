@@ -1,19 +1,23 @@
+#=
+This file contains functions for the infinite alleles model in support of the Nearly Neutral paper.
+Author:  Alden H. Wright, Department of Computer Science, Univeristy of Montana, Missoula, MT 59812 USA
+    alden.wright@umontana.edu
+=#
 export trial_result, print_trial_result, dfe_fitness, fitness, nn_poplist, pop_counts64, 
     dfe_deleterious,dfe_advantageous, dfe_mixed, dfe_mod, dfe_neutral, dfe_fixed 
 
 #using Distributions
 
 @doc """ type trial_result
-  A universal trial result for all run_trials functions
-  Constructors for specific cases are defined below.
+  Julia type that stores both the parameters and the results of a trial.
 """
 type trial_result
   nn_simtype::Int64
   n::Int64    # sample size, must be <= N
   N::Int64    # popsize
-  N_mu::Float64  # N*mu, population mutation rate
+  N_mu::Float64  # N*mu, population mutation rate.  theta = 2*N_mu
   ngens::Int64
-  burn_in::Float64
+  burn_in::Float64  # The number of generations of burn-in is N/mu + 50
   dfe::Function
   dfe_str::AbstractString
   use_poplist::Bool
@@ -35,7 +39,6 @@ function trial_result( nn_simtype::Int64, n::Int64, N::Int64, N_mu::Float64, nge
   add_expected_richness( tr )
   tr
 end
-
 
 function print_trial_result( tr::trial_result )
   if tr.nn_simtype == 1
@@ -85,19 +88,15 @@ function dfe_fitness( p::Int64, dfe::Function, fitness_table::Dict{Int64,Float64
   val
 end 
 
-@doc """ function nn_poplist( N::Int64, mu::Float64, ngens::Int64, dfe::Function; burn_in::Float64=1.0,
-    uniform_start::Bool=false )
+@doc """ function nn_poplist( )
+This function does the iteration over generations for the infinite alleles model.
 Note:  dfe is "distribution of fitness effects" function.  
 """
-#function nn_poplist( N::Int64, N_mu::Float64, ngens::Int64, dfe::Function; burn_in::Float64=2.0, 
-#    uniform_start::Bool=false, nnselect::Int64=1, combine::Bool=true)
 function nn_poplist( tr::trial_result; uniform_start::Bool=false, nnselect::Int64=1, combine::Bool=true)
   global fitness_table = Dict{Int64,Float64}()
-  #tr.use_poplist=false
   println("tr.use_poplist: ",tr.use_poplist)
   g_limit = 1000000  # upper limit of generations to wait for extinctions and fixations
   int_burn_in = Int(round(tr.burn_in*tr.N/tr.N_mu+50.0))
-  #println("int_burn_in: ",int_burn_in)
   mu = tr.N_mu/tr.N
   if uniform_start  # All allele values start with the same value.  Start with a selective sweep.
     new_pop = Int64[1 for i = 1:tr.N] 
@@ -147,8 +146,6 @@ function nn_poplist( tr::trial_result; uniform_start::Bool=false, nnselect::Int6
       sum_IQV += IQVvalue
       sum_sq_IQV += IQVvalue^2
       homoz = watterson_homozygosity( pcounts )
-      #println("g: ",g,"  new_pop: ",new_pop,"  pcounts: ",pcounts,"  homoz: ",homoz)
-      #println("length poplist: ",length(poplist))
       sum_homoz += homoz
       sum_sq_homoz += homoz^2
       richness = length(pcounts)
@@ -172,21 +169,14 @@ function nn_poplist( tr::trial_result; uniform_start::Bool=false, nnselect::Int6
   tr.w_homoz = sum_homoz/gcount
   tr.stderr_w_homoz = sqrt((sum_sq_homoz/(gcount-1) - sum_homoz^2/gcount/(gcount-1))/gcount)
   tr.average_richness = sum_richness/gcount
-  #println("sum_richness: ",sum_richness)
-  #println("sum_sq_richness: ",sum_sq_richness)
   tr.stderr_richness = sqrt((sum_sq_richness/(gcount-1) - sum_richness^2/gcount/(gcount-1))/gcount)
-  #println("tr.stderr_richness: ", tr.stderr_richness)
   tr.IQV = sum_IQV/gcount
   tr.stderr_IQV = sqrt((sum_sq_IQV/(gcount-1) - sum_IQV^2/gcount/(gcount-1))/gcount)
   if tr.use_poplist
     if combine
       return [pop_result]
     else
-      #println("int_burn_in+1: ",int_burn_in+1,"  int_burn_in+tr.ngens: ",int_burn_in+tr.ngens)
-      #println("poplist: ", poplist[int_burn_in+1:int_burn_in+tr.ngens])
       return poplist[int_burn_in+1:int_burn_in+tr.ngens]
-      #println("poplist: ", poplist)
-      ##return poplist
     end
   end
 end
@@ -260,13 +250,3 @@ end
 function dfe_fixed( x::Int64; s::Float64=0.0 )
   return 1.0 + s   # fitness corresponding to selection coefficient s
 end
-
-#=  Tests
-nn_select = 1
-for i = 1:10 println(dfe_fitness(i,dfe_mod)) end
-for i = 1:10 println(dfe_fitness(i,dfe_mixed)) end
-N=10; N_mu =2.0; ngens = 3;
-nn_poplist(N,N_mu,ngens,dfe_mod)
-for i = 1:10 println(dfe_fitness(i,x->dfe_mod(x,fit_inc=2.0))) end
-nn_poplist(N,N_mu,ngens,x->dfe_mod(x,fit_inc=2.0))
-=#
