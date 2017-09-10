@@ -114,7 +114,9 @@ function run_trials( mu_list_flag::Bool=false)
         tr = infs_result( nn_simtype, N, N_mu, ngens, dfe, dfe_str )
         run_trial( tr )
         writerow(stream, trial, tr )
+        Base.flush(stream)
         print_infs_result( tr )
+        Base.flush(STDOUT)
         trial += 1
       end
     end
@@ -127,7 +129,9 @@ function run_trials( mu_list_flag::Bool=false)
         tr = infs_result( nn_simtype, N, N_mu, ngens, dfe, dfe_str )
         run_trial( tr )
         writerow(stream, trial, tr, mu_list_flag=mu_list_flag )
+        Base.flush(stream)
         print_infs_result( tr )
+        Base.flush(STDOUT)
         trial += 1
       end
     end

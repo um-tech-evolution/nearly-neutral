@@ -56,6 +56,7 @@ function run_trials(popsize_multiplier_list::Vector{Int64}=[1]; mu_list_flag::Bo
           run_trial( tr )
           writerow(stream, trial, tr )
           trial += 1
+          Base.flush(stream)
         end
       end
     end
@@ -71,6 +72,7 @@ function run_trials(popsize_multiplier_list::Vector{Int64}=[1]; mu_list_flag::Bo
           run_trial( tr )
           writerow(stream, trial, tr, mu_list_flag=mu_list_flag )
           trial += 1
+          Base.flush(stream)
         end
       end
     end
@@ -89,6 +91,7 @@ function run_trial( tr::trial_result )
       nn_poplist(tr,combine=false)
     end
     print_trial_result( tr )
+    Base.flush(STDOUT)
     return tr
   else
     println("nn_simtype ",nn_simtype," not implemented")
