@@ -13,6 +13,7 @@ const N_mu_list= [1.0,2.0]   # Mutation rate as a multiple of 1.0/N
 const L = 1           # number of loci
 const ngens = 40000      # Generations after burn-in
 const burn_in= 2.0    # generations of burn_in as a multiple of 1/mu
+const use_poplist=true   # Using poplist does additional correctness checking, but increases memory usage
 dfe = dfe_mixd
 dfe_str = "dfe_mixd advprob=0.01 alpha_adv=1.0 alpha_disadv=0.2 beta_adv=0.01 beta_disadv=0.5"
 dfe_adv_prob=0.01

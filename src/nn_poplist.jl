@@ -2,11 +2,12 @@
 This file contains functions for the infinite alleles model in support of the Nearly Neutral paper.
 Author:  Alden H. Wright, Department of Computer Science, Univeristy of Montana, Missoula, MT 59812 USA
     alden.wright@umontana.edu
+Called by experiments/n_neutral.jl.
+Example run:
+[experiments]$ julia n_neutral.jl examples/nn_example1
 =#
 export trial_result, print_trial_result, dfe_fitness, fitness, nn_poplist, pop_counts64, 
     dfe_deleterious,dfe_advantageous, dfe_mixed, dfe_mod, dfe_neutral, dfe_fixed 
-
-#using Distributions
 
 @doc """ type trial_result
   Julia type that stores both the parameters and the results of a trial.

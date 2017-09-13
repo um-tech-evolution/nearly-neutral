@@ -3,8 +3,11 @@ Example run from command line reading from the parameter file  examples/nn_examp
 $  julia n_neutral.jl examples/nn_example1
 
 This run produces the output CSV file:  examples/nn_example1.csv
+Front end for src/nn_poplist.jl
+This file contains functions for the infinite alleles model in support of the Nearly Neutral paper.
+Author:  Alden H. Wright, Department of Computer Science, Univeristy of Montana, Missoula, MT 59812 USA
+    alden.wright@umontana.edu   
 =#
-# Front end for src/nn_poplist.jl
 # The following are top-level commands run when the file is executed by julia.
 include("../src/InfAlleles.jl")
 if length(ARGS) == 0

@@ -3,6 +3,10 @@ Example run from command line reading from the parameter file  examples/nn_examp
 $  julia n_infsites.jl examples/in_example?
 
 This run produces the output CSV file:  examples/in_example?.csv
+
+This file contains functions for the infinite sites model in support of the Nearly Neutral paper.
+Author:  Alden H. Wright, Department of Computer Science, Univeristy of Montana, Missoula, MT 59812 USA
+    alden.wright@umontana.edu
 =#
 # The following are top-level commands run when the file is executed by julia.
 # Front-end for src/infsites.jl
@@ -139,6 +143,7 @@ end  # if !mu_list_flag
 end
 
 function run_trial( tr::infs_result_type )
+  #global sum_counts
   if tr.nn_simtype == 2
     ic = inf_sites( tr.N, tr.N_mu, tr.ngens, dfe=tr.dfe )
     tr.number_extinctions = length(ic.extinct)
@@ -152,6 +157,7 @@ function run_trial( tr::infs_result_type )
     tr.average_fitness_all = average_fitness_all(ic)
     (tr.average_sites_per_gen, tr.stderr_sites_per_gen) = sites_per_gen(ic)
     (tr.average_heterozygosity_per_gen, tr.stderr_heterozygosity_per_gen) = heterozygosity_per_gen(ic)
+    #println("sum_counts: ",sum_counts)
     return tr
   else
     println("nn_simtype ",nn_simtype," not implemented")
