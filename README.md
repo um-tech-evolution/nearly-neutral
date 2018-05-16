@@ -1,12 +1,16 @@
 # NearlyNeutral.jl
 
 Julia source code for the simulations in support of a paper on the applications of
-the nearly neutral theory from population genetics to cultural evolution.  This 
-paper is in progress, and does not yet have a defintie title.
+the nearly neutral theory from population genetics to cultural evolution.  The simulation
+code is in Julia, while code for producing the plots is written in R.
+As of May 2018, the code is compatible with Julia v. 6 with no deprecation warnings.
+
+This paper is in progress, and does not yet have a definite title.
+
 
 ## Authors
   + Alden Wright (<alden.wright@umontana.edu>)  primary author of the code.
-  + Cheyenne Laue (<cheyenne.laue@umontane.edu>)  primary author of the paper.
+  + Cheyenne Laue (<cheyenne.laue@umontane.edu>)  first author of the paper.
 
 ## About nearly neutral theory
 
@@ -24,7 +28,9 @@ From [Wikipedia](https://en.wikipedia.org/Nearly_neutral_theory_of_molecular_evo
 
 There two models:  infinite alleles, infinite sites. 
 
-The top-level program for infinite alleles is experiments/n_neutral.jl. 
-The top-level program for infinite sites is experiments/n_infsites.jl. 
+To run examples from the command line:
+>  cd src
+>  julia run.jl examples/ia\_example1    # run infinite alleles model
+>  julia run.jl examples/is\_example1    # run infinite sites model
 
 

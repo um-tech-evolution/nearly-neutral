@@ -1,12 +1,17 @@
+#=  Type definitions for  site  and  site_collection  and related functions for the infinite sites model.
+A site stores statistics for a single site, while a site_collection stores statistics for all of the sites of a trial.
+The update_sites1() function is called on every generation to update all sites in the site collection,
+
+GLOBAL VARIABLES:  The global variables declared in this file are used only for correctness checking via the @assert macro.
+  There are equivalent fields in site_collection, and results depend only on these fields, not on global variables.
+  Thus, all global variables and global variable computations can be removed without affecting functionality.
+=#
 export site_type, site,  
     site_collection, sc_push!, update_sites!, update_neutral, update_selected,
     print_summary, average_time_to_extinction, average_time_to_fixation, 
     fixed_fraction, average_fitness_fixed, average_fitness_extinct, average_fitness_all,
     sites_per_gen, heterozygosity_per_gen
 
-
-#global sum_counts; sum_sq_counts; sum_heteroz; sum_sq_heteroz
-using Base.Test
 #=
 Stores the properties of an "site" (possibly deleterious or advantageous).
 =#
@@ -31,24 +36,20 @@ end
     and 1 is added to sum_gens in sites_per_gen() and heterozygosity_per_gen().
 """
 function site( id::Int64, N::Int64, start_gen::Int64, fitness_coef::Float64=1.0 )
-  #global sum_counts=1; sum_sq_counts=1; sum_heteroz; sum_sq_heteroz
-  #println("site: id: ",id,"  N: ",N,"  start_gen: ",start_gen)
+  # See the comments on global variables at the beginning of this file.
   global sum_counts += 1
   global sum_sq_counts += 1
-  #println("sc sum_counts: ",sum_counts)
   initial_heteroz = 1.0 - watterson_homozygosity([N-1,1])
   global sum_heteroz += initial_heteroz
   global sum_sq_heteroz += initial_heteroz^2
   global sum_gens += 1
-  #println("new site id: ",id,"  initial_heteroz: ",initial_heteroz)
   return site_type( id, start_gen, 0, fitness_coef, 1, 1, 1, initial_heteroz, initial_heteroz^2, 1  )
 end
 
 #=
 Stores a collection of sites.
-Sites are partitioned into 3 subsets, active, fixed, and extinct.
+Sites are partitioned into 3 subsets: active, fixed, and extinct.
 =#
-
 type site_collection
   N::Int64                # popsize
   list::Dict{Int64,site_type} #    Stores a collection of sites
@@ -67,17 +68,6 @@ type site_collection
   in_use::Bool      # If false, not used
 end
 
-# Constructor for a new empty site collection
-function site_collection( N::Int64, in_use::Bool=true )  
-  global sum_counts = 0
-  global sum_sq_counts = 0
-  global sum_heteroz = 0.0
-  global sum_sq_heteroz = 0.0
-  global sum_gens = 0
-  #site_collection( N, Dict{Int64,site_type}(), IntSet(), IntSet(), IntSet(), 1.0, 0, 0, 0.0, 0,0,0, in_use )
-  #site_collection( N, Dict{Int64,site_type}(), IntSet(), IntSet(), IntSet(), 1.0, 0, 0,0, in_use )
-  site_collection( N, Dict{Int64,site_type}(), IntSet(), IntSet(), IntSet(), 1.0, 0, 0, 0, 0.0, 0.0, 0, 0, 0, in_use )
-end
 
 # Constructor for a new empty site collection with a value for fix_minimum
 function site_collection( N::Int64, fix_min::Float64, in_use::Bool=true )  
@@ -86,8 +76,6 @@ function site_collection( N::Int64, fix_min::Float64, in_use::Bool=true )
   global sum_heteroz = 0.0
   global sum_sq_heteroz = 0.0
   global sum_gens = 0
-  #site_collection( N, Dict{Int64,site_type}(), IntSet(), IntSet(), IntSet(), fix_min, 0, 0.0, 0,0,0, in_use )
-  #site_collection( N, Dict{Int64,site_type}(), IntSet(), IntSet(), IntSet(), fix_min, 0,0, in_use )
   site_collection( N, Dict{Int64,site_type}(), IntSet(), IntSet(), IntSet(), fix_min, 0, 0, 0.0, 0.0, 0.0, 0,0,0, in_use )
 end
 
@@ -106,7 +94,6 @@ function sc_push!( innov_collection::site_collection, innov::site_type )
   else
     Base.push!( innov_collection.extinct, innov.identifier )
   end
-  #println("new site: id: ",innov.identifier)
   innov_collection
 end
 
@@ -123,7 +110,6 @@ end
  This version is used only by infsites.jl.
 """
 function update_sites!( sc::site_collection, g::Int64, N::Int64 )
-  #global sum_counts; sum_sq_counts; sum_heteroz; sum_sq_heteroz
   if !sc.in_use 
     return
   end
@@ -133,7 +119,6 @@ function update_sites!( sc::site_collection, g::Int64, N::Int64 )
     innov = sc.list[index]
     if new_allele_freq > 0 && new_allele_freq < N
       global sum_counts += new_allele_freq
-      #println("ua sum_counts: ",sum_counts)
       global sum_sq_counts += new_allele_freq^2
       innov.sum_gens += 1
       innov.sum_counts += new_allele_freq
@@ -145,13 +130,8 @@ function update_sites!( sc::site_collection, g::Int64, N::Int64 )
       innov.sum_heteroz += heteroz
       innov.sum_sq_heteroz += heteroz^2
     end
-    #println("g: ",g,"  heteroz: ",heteroz,"  new_allele_freq: ",new_allele_freq,"  sum_counts: ",innov.sum_counts,"  sum_heteroz: ",innov.sum_heteroz)
-    #print("id: ",innov.identifier,"  g: ",g,"  sum_gens: ",innov.sum_gens)
-    #println("  sum_heteroz: ",innov.sum_heteroz,"  sum_sq_heteroz: ",innov.sum_sq_heteroz,"  sum_counts: ",innov.sum_counts,"  sum_sq_counts: ",innov.sum_sq_counts)
     innov.previous_allele_freq = new_allele_freq  # save for the next call to update_selected.
     if new_allele_freq == 0 ||  new_allele_freq >= N 
-      #println("g: ",g,"  start gen: ",innov.start_gen,"  num_gens: ",g-innov.start_gen)
-      #println("g: ",g,"  innov.sum_gens: ",innov.sum_gens,"  sc.sum_gens: ",sc.sum_gens,"  sc.sum_generations: ",sc.sum_generations)
       sc.sum_gens += innov.sum_gens
       sc.sum_counts += innov.sum_counts
       sc.sum_sq_counts += innov.sum_sq_counts
@@ -162,40 +142,12 @@ function update_sites!( sc::site_collection, g::Int64, N::Int64 )
       innov.final_gen = g
       if new_allele_freq == 0  # extinction
         Base.push!( sc.extinct,index)
-        #println("extinct index:",index,"  gen:",g,"  startg:",innov.start_gen)
       elseif new_allele_freq >= N # fixation
         Base.push!( sc.fixed,index)
-        #println("fixed index:",index,"  gen:",g,"  startg:",innov.start_gen)
       end
     end
   end
 end
-
-#= TODO:  delete since infinite alleles no longer uses site collection
-@doc """ function update_sites!( )
- Update all active sites, and make some extinct and fixed
- This version is called by the infinite alleles model (either neutral_poplist.jl or nearly_neutral_poplist.jl).
- popcounter is a dictionary that maps alleles to their frequencies in the current generation population
-"""
-function update_sites!( sc::site_collection, g::Int64, N::Int64, popcounter::Dict{Int64,Int64}, fixation_test::Function=fix_test )
-  if !sc.in_use 
-    return
-  end
-  for index in sc.active  # updates sites to the next generation
-    new_allele_freq = get( popcounter, index, 0 )
-    #sc_update!(sc,index,g,new_allele_freq)
-    if new_allele_freq == 0  # extinction
-      Base.pop!( sc.active,index)
-      Base.push!( sc.extinct,index)
-      sc.list[index].final_gen = g
-    elseif new_allele_freq >= Int(ceil(sc.fix_minimum*N) )  # fixation
-      Base.pop!( sc.active,index)
-      Base.push!( sc.fixed,index)
-      sc.list[index].final_gen = g
-    end
-  end
-end  
-=#
 
 @doc """ function update_neutral() 
   Updates site according to the Wright-Fisher model of drift.  
@@ -204,7 +156,6 @@ end
 function update_neutral( site::Int64, N::Int64, old_allele_freq::Int64 )
   p = Float64(old_allele_freq)/N
   new_allele_freq = rand(Binomial(N,p))
-  #println("update_neutral: ",site,"  N: ",N,"  new_allele_freq: ",new_allele_freq)
   return new_allele_freq
 end 
 
@@ -217,9 +168,10 @@ end
 function update_selected( site::Int64, N::Int64, old_allele_freq::Int64, select_coef::Float64 )
   p = min(1.0,(select_coef*Float64(old_allele_freq)/N))
   new_allele_freq = rand(Binomial(N,p))
-  #println("update selected: site: ",site,"  old allele_freq: ",old_allele_freq,"  new allele_freq: ",new_allele_freq,"  sel coef: ",select_coef,"  p: ",p)
   return new_allele_freq
 end  
+
+
 function N_inf_sites( sc::site_collection )
   if !sc.in_use 
     return
@@ -231,7 +183,30 @@ function N_inf_sites( sc::site_collection )
   sum_N
 end
 
+@doc """ check_globals_against_site_collection()
+  Check that the values of global variables approximately agree with the corresponding variables in sc.
+"""
+function check_globals_against_site_collection( sc::site_collection )
+  global sum_counts 
+  global sum_sq_counts 
+  global sum_heteroz 
+  global sum_sq_heteroz 
+  global sum_gens 
+  @assert isapprox(sc.sum_gens,sum_gens)
+  @assert isapprox(sc.sum_counts,sum_counts)
+  @assert isapprox(sc.sum_sq_counts,sum_sq_counts)
+  @assert isapprox(sc.sum_heteroz,sum_heteroz)
+  @assert isapprox(sc.sum_sq_heteroz,sum_sq_heteroz)
+end
+
 function print_summary( sc::site_collection; print_lists::Bool=false )
+  println("print summary of site collection: ")
+  global sum_counts 
+  global sum_sq_counts 
+  global sum_heteroz 
+  global sum_sq_heteroz 
+  global sum_gens 
+
   #global sum_counts
   #println("psum sum_counts: ",sum_counts)
   if !sc.in_use 
@@ -246,11 +221,11 @@ function print_summary( sc::site_collection; print_lists::Bool=false )
   println("number fixed: ",length(sc.fixed))
   println("number extinct: ",length(sc.extinct))
   println("fixed fraction: ",fixed_fraction(sc))
-  println("sum_counts: ",sc.sum_counts)
-  println("sum_sq_counts: ",sc.sum_sq_counts)
-  println("sum_heteroz: ",sc.sum_heteroz)
-  println("sum_sq_heteroz: ",sc.sum_sq_heteroz)
-  println("sum_gens: ",sc.sum_generations)
+  println("sum_counts: ",sc.sum_counts,"  glb: ",sum_counts)
+  println("sum_sq_counts: ",sc.sum_sq_counts,"  glb: ",sum_sq_counts)
+  println("sum_heteroz: ",sc.sum_heteroz,"  glb: ",sum_heteroz)
+  println("sum_sq_heteroz: ",sc.sum_sq_heteroz,"  glb: ",sum_sq_heteroz)
+  println("sum_gens: ",sc.sum_generations,"  glb: ",sum_gens)
   (avg,stderr) = sites_per_gen(sc) 
   println("avg sites per generation: ",avg)
   println("stderr sites per generation: ",stderr)
@@ -376,6 +351,8 @@ function count_adv_del_fixed( sc::site_collection )
       count_del += 1
     end
   end
+  sc.count_fixed_adv = count_adv
+  sc.count_fixed_del = count_del
   return count_adv, count_del
 end
 
@@ -385,12 +362,9 @@ function sites_per_gen( sc::site_collection )
   global sum_sq_counts
   global counts_var = sqrt(sum_sq_counts/(sum_gens-1) - sum_counts^2/sum_gens/(sum_gens-1))/sum_gens
   sumgens = sc.sum_generations
-  #println("avg innov sumgens: ",sumgens)
-  #println("avg innov sum_sq_counts: ",sc.sum_sq_counts)
   average = sc.sum_counts/sumgens
   coef_var = sqrt(sc.sum_sq_counts/(sumgens-1) - sc.sum_counts^2/sumgens/(sumgens-1))/sumgens
   @assert isapprox( coef_var, counts_var )
-  #println("avg innov var: ",coef_var)
   if coef_var >= 0
     stderr = coef_var
   else
@@ -403,15 +377,11 @@ function heterozygosity_per_gen( sc::site_collection )
   global sum_gens 
   global sum_heteroz
   global sum_sq_heteroz
-  global heteroz_var = sqrt(sum_sq_heteroz/(sum_gens-1) - sum_heteroz^2/sum_gens/(sum_gens-1))/sum_gens
+  heteroz_var = sqrt(sum_sq_heteroz/(sum_gens-1) - sum_heteroz^2/sum_gens/(sum_gens-1))/sum_gens
   sumgens = sc.sum_generations
   average = sc.sum_heteroz/sumgens
-  #println("sumgens: ",sumgens,"  global sum_gens: ",sum_gens)
-  #println("sum heteroz: ",sc.sum_heteroz,"  global sum_heteroz: ",sum_heteroz)
-  #println("sum sq heteroz: ",sc.sum_sq_heteroz,"  global sum_sq_heteroz: ",sum_sq_heteroz)
   coef_var = sqrt(sc.sum_sq_heteroz/(sumgens-1) - sc.sum_heteroz^2/sumgens/(sumgens-1))/sumgens
   @assert isapprox( coef_var, heteroz_var )
-  #println("avg hetero coef var: ",coef_var,"  global coef var: ",heteroz_var)
   if coef_var >= 0
     stderr = coef_var
   else

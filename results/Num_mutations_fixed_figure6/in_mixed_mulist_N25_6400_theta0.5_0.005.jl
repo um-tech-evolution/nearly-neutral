@@ -1,0 +1,22 @@
+# Configuration for nearly neutral simuation
+function dfe_mixd( x::Int64 )
+  dfe_mixed( x::Int64; adv_probability=0.01, 
+    alpha_disadv=dfe_disadv_alpha, theta_disadv=dfe_disadv_theta,
+    alpha_adv=dfe_adv_alpha, theta_adv=dfe_adv_theta )
+end
+
+const nn_simtype = 2    # nearly neutral infinite sites
+type_str = "M1"
+const mu_list_flag = true
+@everywhere const N_list     = [25,50,100,200,400,800,1600,3200,6400]     # popsize
+const mu_list= [0.025,0.01,0.005,0.0025]   # Mutation rate as a multiple of 1.0/N
+const ngens = 50000      # Generations after burn-in
+const burn_in= 2.0    # generations of burn_in as a multiple of 1/mu
+dfe = dfe_mixd
+dfe_str = "dfe_mixd advprob=0.01 alpha_adv=0.2 alpha_disadv=0.5 theta_adv=0.005 theta_disadv=0.5"
+dfe_adv_prob=0.01
+dfe_adv_alpha=0.5
+dfe_disadv_alpha=0.2
+dfe_adv_theta=0.005
+dfe_disadv_theta=0.5
+
