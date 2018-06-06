@@ -1,1 +1,0 @@
-../../cultural-neutrality/src/neutral_poplist.jl

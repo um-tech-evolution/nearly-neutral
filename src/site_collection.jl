@@ -22,7 +22,7 @@ type site_type
   final_gen::Int64    # the generation when the site went extinct.  Should be zero while site is evolving
   fitness_coefficient::Float64    # The selection coefficient of the site (allele)
   sum_gens::Int64     # sum of the number of generations where counts and heterozygosity are accumulated
-  sum_counts::Int64   # the current accumulated sum of the counts per generation for infinite sites
+  sum_counts::Int64   # the current accumulated sum of the counts of the mutant allele per generation for infinite sites
   sum_sq_counts::Int64   # the current accumulated sum of squares of the counts per generation for infinite sites
   sum_heteroz::Float64  # the current accumulated sum of heterozygosities for infinite sites
   sum_sq_heteroz::Float64  # the current accumulated sum of squares ofheterozygosities for infinite sites
@@ -330,6 +330,7 @@ end
 
 @doc """ function count_adv_del_fixed( )
   Counts the number of fixed sites that are advantageous, and the number that are deleterious at the end of the run.
+  Stores these in site collection sc, and also returns them as a pair.
 """
 function count_adv_del_fixed( sc::site_collection )
   #println("count_adv_del_fixed")

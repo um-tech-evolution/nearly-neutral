@@ -33,4 +33,4 @@ To run examples from the command line:
 >  julia run.jl examples/ia\_example1    # run infinite alleles model
 >  julia run.jl examples/is\_example1    # run infinite sites model
 
-
+The R code for producing the plots is in the results folder.

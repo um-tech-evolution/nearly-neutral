@@ -1,6 +1,5 @@
 # Configuration for running spatial simulation
 export simtype
-# simtype=2 means spatial structure by changing the ideal values for attributes
 @everywhere simtype = 2    
 const num_trials = 1000
 @everywhere const N_list = [6400,3200,1600,800,400,200,100,50,25]        # Meta-population size

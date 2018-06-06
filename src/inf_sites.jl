@@ -41,8 +41,9 @@ function inf_sites( N::Int64, N_mu::Float64, ngens::Int64; dfe::Function=dfe_neu
     g += 1
     done = (g > ngens) && length(sc.active) == 0
   end
-  #print_summary( sc )   # print a summary of the values stored in site_collection sc
-  #check_globals_against_site_collection( sc )    # Check that global statistics agree with those in sc.
+  print_summary( sc )   # print a summary of the values stored in site_collection sc
+  count_adv_del_fixed( sc )   # sets sc.count_fixed_adv and sc.count_fixed_del
+  check_globals_against_site_collection( sc )    # Check that global statistics agree with those in sc.
   sc
 end
 

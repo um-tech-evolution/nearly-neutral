@@ -116,18 +116,18 @@ end
 
 function is_run_trial( tr::infs_result_type )
   if tr.nn_simtype == 2
-    ic = inf_sites( tr.N, tr.N_mu, tr.ngens, dfe=tr.dfe )
-    tr.number_extinctions = length(ic.extinct)
-    tr.number_fixations = length(ic.fixed)
-    tr.count_fixed_del = ic.count_fixed_del
-    tr.count_fixed_adv = ic.count_fixed_adv
-    tr.average_time_to_extinction = average_time_to_extinction(ic)
-    tr.average_time_to_fixation = average_time_to_fixation(ic)
-    tr.average_fitness_extinct = average_fitness_extinct(ic)
-    tr.average_fitness_fixed = average_fitness_fixed(ic)
-    tr.average_fitness_all = average_fitness_all(ic)
-    (tr.average_sites_per_gen, tr.stderr_sites_per_gen) = sites_per_gen(ic)
-    (tr.average_heterozygosity_per_gen, tr.stderr_heterozygosity_per_gen) = heterozygosity_per_gen(ic)
+    sc = inf_sites( tr.N, tr.N_mu, tr.ngens, dfe=tr.dfe )
+    tr.number_extinctions = length(sc.extinct)
+    tr.number_fixations = length(sc.fixed)
+    tr.count_fixed_del = sc.count_fixed_del
+    tr.count_fixed_adv = sc.count_fixed_adv
+    tr.average_time_to_extinction = average_time_to_extinction(sc)
+    tr.average_time_to_fixation = average_time_to_fixation(sc)
+    tr.average_fitness_extinct = average_fitness_extinct(sc)
+    tr.average_fitness_fixed = average_fitness_fixed(sc)
+    tr.average_fitness_all = average_fitness_all(sc)
+    (tr.average_sites_per_gen, tr.stderr_sites_per_gen) = sites_per_gen(sc)
+    (tr.average_heterozygosity_per_gen, tr.stderr_heterozygosity_per_gen) = heterozygosity_per_gen(sc)
     return tr
   else
     println("nn_simtype ",nn_simtype," not implemented")
