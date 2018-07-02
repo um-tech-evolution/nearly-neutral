@@ -1,5 +1,5 @@
 # R script to produce plot the attribute coefficient of variation for N from 25 to 6400 and for various mutation standard deviations.
-# Author:  Alden Wright  12/14/2017  (verified 1/18/18)
+# Author:  Alden Wright  12/14/2017  (verified 1/18/18, 7/2/18)
 #setwd("../../continuous_variable_evolution/data/9_30_17")
 cv = read.csv("N6400_2_na1_mutstddev_bi400_multnerr_neutral.csv",comment.char="#")
 sub_cv=subset(cv,N>=25,select=c(N,mutation_stddev,attribute_mean,attribute_coef_var))
@@ -25,7 +25,7 @@ for( i in 2:5){
   points(agg_cv$N[agg_cv$mutation_stddev==mtsd[i]],agg_cv$attribute_coef_var[agg_cv$mutation_stddev==mtsd[i]],col=colors[i],pch=pchars[i])
   lines(agg_cv$N[agg_cv$mutation_stddev==mtsd[i]],agg_cv$attribute_coef_var[agg_cv$mutation_stddev==mtsd[i]],col=colors[i],lty=linetypes[i])
 }
-title("Neutral Attribute Coefficient of Variation with burn-in=400")
+#title("Neutral Attribute Coefficient of Variation with burn-in=400")
 legend(25,0.9,labels,col=colors,pch=pchars,lty=linetypes,bty="n")
 dev.copy(png,"neutral_attr_coef_var_bi400.png")    # copies what is on the screen to a file.
 dev.off()

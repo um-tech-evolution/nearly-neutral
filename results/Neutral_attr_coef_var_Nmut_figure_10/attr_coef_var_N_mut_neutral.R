@@ -24,7 +24,11 @@ for( i in 2:4){
   points(agg_cv$N[agg_cv$N_mut==Nmut[i]],agg_cv$attribute_coef_var[agg_cv$N_mut==Nmut[i]],col=colors[i],pch=pchars[i])
   lines(agg_cv$N[agg_cv$N_mut==Nmut[i]],agg_cv$attribute_coef_var[agg_cv$N_mut==Nmut[i]],col=colors[i],lty=linetypes[i])
 }
-title("Neutral Attribute Coefficient of Variation with burn-in=3.0")
+#title("Neutral Attribute Coefficient of Variation with burn-in=3.0")
 legend(1200,0.15,labels,col=colors,pch=pchars,lty=linetypes,bty="n")
 dev.copy(pdf,"neutral_attr_coef_var_N_mut_bi3_0.pdf")    # copies what is on the screen to a file.
+dev.off()
+dev.copy(png,"neutral_attr_coef_var_N_mut_bi3_0.png")    # copies what is on the screen to a file.
+dev.off()
+dev.copy(tiff,"neutral_attr_coef_var_N_mut_bi3_0.tiff")    # copies what is on the screen to a file.
 dev.off()

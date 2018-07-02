@@ -1,5 +1,6 @@
 # Example Configuration for nearly neutral infinite sites simuation
-# Command line to run:  julia n_neutral.jl examples/in_example1
+# Command line to run:  julia run.jl examples/is_example1
+# Example run from command line with random number seed 1:  julia run.jl examples/is_example1 1
 # Creates output file configs/in_example1.csv
 
 const nn_simtype = 2    # nearly neutral infinite alleles

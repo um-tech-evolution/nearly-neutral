@@ -9,7 +9,7 @@ usage() {
 }
 
 runtests() {
-    echo "Running tests:"
+    echo "Running tests using random number seed 1:"
     cd "$DIR/src" && julia --color=yes --check-bounds=yes run.jl examples/ia_example1 1
     cd "$DIR/src" && julia --color=yes --check-bounds=yes run.jl examples/ia_example2 1
     cd "$DIR/src" && julia --color=yes --check-bounds=yes run.jl examples/ia_example3 1

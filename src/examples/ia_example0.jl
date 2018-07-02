@@ -1,6 +1,6 @@
 # Configuration for nearly neutral simuation
 # Run with small values of N, ngens for testing
-# Example run from command line:  julia n_neutral.jl nn_examples/nn_example1
+# Example run from command line:  julia run.jl examples/ia_example0
 function dfemod(x) 
   dfe_mod(x,fit_inc=1.2)
 end

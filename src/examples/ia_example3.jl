@@ -1,5 +1,5 @@
 # Example Configuration for nearly neutral simuation
-# Command line to run:  julia n_neutral.jl examples/nn_example3
+# Command line to run:  julia run.jl examples/ia_example3
 # Creates output file examples/nn_example3.csv
 
 function dfe_mixd( x::Int64 )

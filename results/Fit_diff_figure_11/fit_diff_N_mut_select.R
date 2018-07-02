@@ -26,9 +26,11 @@ points(agg_cv$N[agg_cv$N_mut==Nmut[1]],agg_cv$fit_diff_neg_fract[agg_cv$N_mut==N
 lines(agg_cv$N[agg_cv$N_mut==Nmut[1]],agg_cv$fit_diff_neg_fract[agg_cv$N_mut==Nmut[1]],col=colors[4],lty=linetypes[4])
 points(agg_cv$N[agg_cv$N_mut==Nmut[1]],agg_cv$fit_diff_pos_fract[agg_cv$N_mut==Nmut[1]],col=colors[3],pch=pchars[3])
 lines(agg_cv$N[agg_cv$N_mut==Nmut[1]],agg_cv$fit_diff_pos_fract[agg_cv$N_mut==Nmut[1]],col=colors[3],lty=linetypes[3])
-title("Non-neutral Fitness Differences NMut=1")
+#title("Non-neutral Fitness Differences NMut=1")
 legend(800,0.12,labels,col=colors,pch=pchars,lty=linetypes,bty="n")
 dev.copy(pdf,"fit_diff_NMut=1.pdf")    # copies what is on the screen to a file.
 dev.off()
 dev.copy(png,"fit_diff_NMut=1.png")    # copies what is on the screen to a file.
+dev.off()
+dev.copy(tiff,"fit_diff_NMut=1.tiff")    # copies what is on the screen to a file.
 dev.off()

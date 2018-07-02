@@ -1,5 +1,5 @@
 # Example Configuration for nearly neutral infinite sites simuation
-# Command line to run:  julia n_neutral.jl examples/in_example1
+# Command line to run:  julia run.jl examples/is_example2
 # Creates output file examples/in_example2.csv
 function dfe_disadv( x::Int64 )
   dfe_deleterious( x::Int64; alpha=dfe_disadv_alpha, beta=dfe_disadv_beta )

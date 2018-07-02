@@ -1,6 +1,6 @@
 # Example Configuration for nearly neutral infinite sites simuation
 # Run with small values of N, ngens for testing
-# Command line to run:  julia n_infsites.jl examples/in_example0
+# Command line to run:  julia run.jl examples/is_example0
 # Creates output file examples/in_example0.csv
 
 const nn_simtype = 2    # nearly neutral infinite sites

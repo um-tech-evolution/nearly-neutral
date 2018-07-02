@@ -25,7 +25,7 @@ for( i in 2:4){
   points(agg_cv$N[agg_cv$N_mut==Nmut[i]],agg_cv$fitness_mean[agg_cv$N_mut==Nmut[i]],col=colors[i],pch=pchars[i])
   lines(agg_cv$N[agg_cv$N_mut==Nmut[i]],agg_cv$fitness_mean[agg_cv$N_mut==Nmut[i]],col=colors[i],lty=linetypes[i])
 }
-title("Non-neutral Fitness Mean with burn-in=3.0")
+#title("Non-neutral Fitness Mean with burn-in=3.0")
 legend(1200,0.94,labels,col=colors,pch=pchars,lty=linetypes,bty="n")
 dev.copy(pdf,"non_neutral_fit_mean_N_mut_bi3_0.pdf")    # copies what is on the screen to a file.
 dev.off()

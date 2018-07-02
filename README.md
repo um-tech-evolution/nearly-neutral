@@ -3,7 +3,8 @@
 Julia source code for the simulations in support of a paper on the applications of
 the nearly neutral theory from population genetics to cultural evolution.  The simulation
 code is in Julia, while code for producing the plots is written in R.
-As of May 2018, the code is compatible with Julia v. 6 with no deprecation warnings.
+As of June 2018, the code is almost compatible with Julia v. 7 with only a few 
+deprecation warnings.
 
 This paper is in progress, and does not yet have a definite title.
 
@@ -26,11 +27,16 @@ From [Wikipedia](https://en.wikipedia.org/Nearly_neutral_theory_of_molecular_evo
     
     The nearly neutral theory was proposed by Tomoko Ohta in 1973.[1] 
 
-There two models:  infinite alleles, infinite sites. 
+This respository includes code for two models:  infinite alleles, infinite sites. 
 
-To run examples from the command line:
+To run Julia examples from the command line:
 >  cd src
 >  julia run.jl examples/ia\_example1    # run infinite alleles model
 >  julia run.jl examples/is\_example1    # run infinite sites model
+>  julia run.jl examples/ia\_example1 1  # run infinite alleles model using random number seed 1
+>  julia run.jl examples/is\_example1 1  # run infinite sites model using random number seed 1
 
-The R code for producing the plots is in the results folder.
+The file run\_tests.sh is a bash script to run all of the examples.  The results can be compared
+with the .csv files in  examples/results/.
+
+The top-level results folder includes the R code for producing the plots along with the necessary data.

@@ -5,7 +5,7 @@ Called by nearly-neutral/src/run_infsites.jl
 Author:  Alden H. Wright, Department of Computer Science, Univeristy of Montana, Missoula, MT 59812 USA
     alden.wright@umontana.edu
 Example run:
-[src]$ julia run.jl examples/in_example1
+[src]$ julia run.jl examples/is_example1
 =#
 
 @doc """ function inf_sites( )
@@ -41,7 +41,7 @@ function inf_sites( N::Int64, N_mu::Float64, ngens::Int64; dfe::Function=dfe_neu
     g += 1
     done = (g > ngens) && length(sc.active) == 0
   end
-  print_summary( sc )   # print a summary of the values stored in site_collection sc
+  #print_summary( sc )   # print a summary of the values stored in site_collection sc
   count_adv_del_fixed( sc )   # sets sc.count_fixed_adv and sc.count_fixed_del
   check_globals_against_site_collection( sc )    # Check that global statistics agree with those in sc.
   sc
