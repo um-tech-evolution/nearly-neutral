@@ -106,6 +106,9 @@ function add_stats_to_trial_result!( tr::InfAlleles.trial_result, poplist::Vecto
   tr.IQV = Statistics.mean(IQV_list)
   @assert isapprox( tr.stderr_IQV, stddev(IQV_list)/sqrt(length(IQV_list)) )
   tr.stderr_IQV = stddev(IQV_list)/sqrt(length(IQV_list))
+  entropy_list = map(InfAlleles.entropy,pcounts)
+  tr.entropy = Statistics.mean(entropy_list)
+  tr.stderr_entropy = stddev(entropy_list)/sqrt(length(entropy_list))
 end
 
 @doc """ function ia_writeheader()
@@ -148,7 +151,9 @@ function ia_writeheader(stream::IO, popsize_multiplier_list::Vector{Int64}, N_li
     "w_heteroz",
     "stderr_heteroz",
     "IQV",
-    "stderr_IQV"
+    "stderr_IQV",
+    "entropy",
+    "stderr_entropy"
   ] 
   line = join(vcat( first_heads, last_heads), ",")
   write(stream, line, "\n")
@@ -177,7 +182,9 @@ function ia_writerow(stream::IO, trial::Int64, tr::InfAlleles.trial_result; mu_l
       1.0-tr.w_homoz,
       tr.stderr_w_homoz,
       tr.IQV,
-      tr.stderr_IQV
+      tr.stderr_IQV,
+      tr.entropy,
+      tr.stderr_entropy
     ]
   end
   line = join( vcat( first, mid ), "," )
