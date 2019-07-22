@@ -16,7 +16,7 @@ export site_type, site,
 Stores the properties of an "site" (possibly deleterious or advantageous).
 =#
 
-type site_type
+mutable struct site_type
   identifier::Int64   # integer for this site, not sure if this is needed
   start_gen::Int64    # the generation (time step) when the site was generated
   final_gen::Int64    # the generation when the site went extinct.  Should be zero while site is evolving
@@ -50,12 +50,12 @@ end
 Stores a collection of sites.
 Sites are partitioned into 3 subsets: active, fixed, and extinct.
 =#
-type site_collection
+mutable struct site_collection
   N::Int64                # popsize
   list::Dict{Int64,site_type} #    Stores a collection of sites
-  active::IntSet   # indices of actively evolving sites
-  fixed::IntSet   # indices of sites that have fixed
-  extinct::IntSet   # indices of sites that have gone extinct
+  active::BitSet   # indices of actively evolving sites
+  fixed::BitSet   # indices of sites that have fixed
+  extinct::BitSet   # indices of sites that have gone extinct
   fix_minimum::Float64  # minimum fraction of popsize for fixation for infinite alleles
   sum_gens::Int64     # sum of counts of generations
   sum_counts::Int64   # sum of counts of mutant alleles for infinite sites
@@ -76,7 +76,7 @@ function site_collection( N::Int64, fix_min::Float64, in_use::Bool=true )
   global sum_heteroz = 0.0
   global sum_sq_heteroz = 0.0
   global sum_gens = 0
-  site_collection( N, Dict{Int64,site_type}(), IntSet(), IntSet(), IntSet(), fix_min, 0, 0, 0.0, 0.0, 0.0, 0,0,0, in_use )
+  site_collection( N, Dict{Int64,site_type}(), BitSet(), BitSet(), BitSet(), fix_min, 0, 0, 0.0, 0.0, 0.0, 0,0,0, in_use )
 end
 
 @doc """ sc_push!()

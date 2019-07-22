@@ -9,7 +9,9 @@ This file contains functions for the infinite alleles model in support of the Ne
 Author:  Alden H. Wright, Department of Computer Science, Univeristy of Montana, Missoula, MT 59812 USA
     alden.wright@umontana.edu   
 =#
-include("../src/InfAlleles.jl")
+using Dates
+using Statistics
+
 
 @doc """ function run_trials()
   Run multiple trials of the infinite alleles model.
@@ -27,7 +29,7 @@ function ia_run_trials( mu_list_flag::Bool=false)
   n = Int(floor(N*(1//popsize_multiplier_list[1])))
   if !mu_list_flag
     tr = InfAlleles.trial_result( nn_simtype, n, N, N_mu_list[1], ngens, burn_in, dfe, dfe_str, use_poplist=use_poplist )
-    ia_writeheader(STDOUT, popsize_multiplier_list, N_list, N_mu_list, tr )
+    ia_writeheader(Base.stdout, popsize_multiplier_list, N_list, N_mu_list, tr )
     ia_writeheader(stream, popsize_multiplier_list, N_list, N_mu_list, tr )
     for N_mu in N_mu_list
       for N in N_list
@@ -35,10 +37,10 @@ function ia_run_trials( mu_list_flag::Bool=false)
           n = Int(floor(N*(1//psize_m)))
           tr = InfAlleles.trial_result( nn_simtype, n, N, N_mu, ngens, burn_in, dfe, dfe_str, use_poplist=use_poplist )
           ia_run_trial( tr )
-          ia_writerow(STDOUT, trial, tr )
+          ia_writerow(Base.stdout, trial, tr )
           ia_writerow(stream, trial, tr )
           trial += 1
-          Base.flush(STDOUT)
+          Base.flush(Base.stdout)
           Base.flush(stream)
         end
       end
@@ -53,10 +55,10 @@ function ia_run_trials( mu_list_flag::Bool=false)
           N_mu = N*mu
           tr = InfAlleles.trial_result( nn_simtype, n, N, N_mu, ngens, burn_in, dfe, dfe_str, use_poplist=use_poplist )
           ia_run_trial( tr )
-          ia_writerow(STDOUT, trial, tr, mu_list_flag=mu_list_flag )
+          ia_writerow(Base.stdout, trial, tr, mu_list_flag=mu_list_flag )
           ia_writerow(stream, trial, tr, mu_list_flag=mu_list_flag )
           trial += 1
-          Base.flush(STDOUT)
+          Base.flush(Base.stdout)
           Base.flush(stream)
         end
       end
@@ -64,7 +66,7 @@ function ia_run_trials( mu_list_flag::Bool=false)
   end  # if !mu_list_flag
 end
 
-function ia_run_trial( tr::trial_result )
+function ia_run_trial( tr::InfAlleles.trial_result )
   if tr.nn_simtype == 1
     if tr.use_poplist
       poplist = inf_alleles(tr,combine=false)
@@ -76,7 +78,7 @@ function ia_run_trial( tr::trial_result )
       inf_alleles(tr,combine=false)
     end
     #print_trial_result( tr )
-    Base.flush(STDOUT)
+    Base.flush(Base.stdout)
     return tr
   else
     println("nn_simtype ",nn_simtype," not implemented")
@@ -88,20 +90,20 @@ function stddev(lst)
   sqrt(mapreduce(x->x^2,+,lst)/(N-1) - sum(lst)^2/N/(N-1))
 end
 
-function add_stats_to_trial_result!( tr::trial_result, poplist::Vector{Population} )
+function add_stats_to_trial_result!( tr::InfAlleles.trial_result, poplist::Vector{Population} )
   pcounts = map(pop_counts64,poplist)
   richness_list = map(x->length(x),pcounts)
-  @assert isapprox( tr.average_richness, mean(richness_list) )
-  tr.average_richness = mean(richness_list)
+  @assert isapprox( tr.average_richness, Statistics.mean(richness_list) )
+  tr.average_richness = Statistics.mean(richness_list)
   @assert isapprox( tr.stderr_richness, stddev(richness_list)/sqrt(length(richness_list) ) ) 
   tr.stderr_richness = stddev(richness_list)/sqrt(length(richness_list))
   w_homoz_list = map(watterson_homozygosity,pcounts)
-  @assert isapprox( tr.w_homoz, mean(w_homoz_list ) )
-  tr.w_homoz = mean(w_homoz_list)
+  @assert isapprox( tr.w_homoz, Statistics.mean(w_homoz_list ) )
+  tr.w_homoz = Statistics.mean(w_homoz_list)
   tr.stderr_w_homoz = stddev(w_homoz_list)/sqrt(length(w_homoz_list) )
   IQV_list = map(IQV,pcounts)
-  @assert isapprox( tr.IQV, mean(IQV_list) )
-  tr.IQV = mean(IQV_list)
+  @assert isapprox( tr.IQV, Statistics.mean(IQV_list) )
+  tr.IQV = Statistics.mean(IQV_list)
   @assert isapprox( tr.stderr_IQV, stddev(IQV_list)/sqrt(length(IQV_list)) )
   tr.stderr_IQV = stddev(IQV_list)/sqrt(length(IQV_list))
 end
@@ -112,22 +114,22 @@ Write header line for output CSV file that corresponds to stream.
 See the comments for run_simulation for a description of the parameters.
 """
 function ia_writeheader(stream::IO, popsize_multiplier_list::Vector{Int64}, N_list::Vector{Int64}, 
-    mu_list::Vector{Float64}, tr::trial_result; mu_list_flag::Bool=false )
+    mu_list::Vector{Float64}, tr::InfAlleles.trial_result; mu_list_flag::Bool=false )
   dfe_params = [:dfe_adv_prob, :dfe_adv_alpha, :dfe_adv_beta, :dfe_disadv_prob, :dfe_disadv_alpha, :dfe_disadv_beta]
   param_strings = [
     "# $(string(Dates.today()))",
-    (isdefined(:seed) ? "# random number seed: $(seed)": "# no random number seed defined"),
-    "# $((nn_simtype==1)?"infinite alleles model":"infinite_sites_model")",
+    (@isdefined(seed) ? "# random number seed: $(seed)" : "# no random number seed defined"),
+    "# $((nn_simtype==1) ? "infinite alleles model" : "infinite_sites_model")",
     "# popsize_multiplier_list=$(popsize_multiplier_list)",
     "# N_list=$(N_list)",
-    mu_list_flag ? "# mu_list=$(mu_list)": # N_mu_list=$(N_mu_list)",
+    mu_list_flag ? "# mu_list=$(mu_list)" : # N_mu_list=$(N_mu_list)",
     "# ngens=$(tr.ngens)",
     "# burn_in=$(tr.burn_in)",
     "# dfe=$(tr.dfe)",
     "# dfe_str=$(tr.dfe_str)"
     ]
   for dp in dfe_params
-    if isdefined(dp)
+    if isdefined(Main,dp)
       Base.push!(param_strings,"# $(string(dp))=$(eval(dp))")
     end
   end
@@ -135,7 +137,7 @@ function ia_writeheader(stream::IO, popsize_multiplier_list::Vector{Int64}, N_li
   first_heads = [
     "type",
     #  "n", 
-    "N", (mu_list_flag ? "mu":"N_mu")]
+    "N", (mu_list_flag ? "mu" : "N_mu")]
   last_heads =
   [ 
     "mean_fitness",
@@ -156,12 +158,12 @@ end
 Infinite alleles version.
 Writes one row of the output CSV file.
 """
-function ia_writerow(stream::IO, trial::Int64, tr::trial_result; mu_list_flag::Bool=false   )
+function ia_writerow(stream::IO, trial::Int64, tr::InfAlleles.trial_result; mu_list_flag::Bool=false   )
   first = Any[
-    (isdefined(:type_str) ? type_str :trial),
+    (isdefined(Main,:type_str) ? type_str : trial),
     #tr.n,           # sample size
     tr.N,           # popsize
-    mu_list_flag ? tr.N_mu/tr.N:tr.N_mu,          
+    mu_list_flag ? tr.N_mu/tr.N : tr.N_mu,          
   ]
   if tr.nn_simtype == 0
     mid = Any[]

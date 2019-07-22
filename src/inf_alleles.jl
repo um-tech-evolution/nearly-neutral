@@ -2,37 +2,14 @@
 This file contains functions for the infinite alleles model in support of the Nearly Neutral paper.
 Author:  Alden H. Wright, Department of Computer Science, Univeristy of Montana, Missoula, MT 59812 USA
     alden.wright@umontana.edu
-Called by experiments/n_neutral.jl.
 Example run:
-[experiments]$ julia n_neutral.jl examples/nn_example1
+[experiments]$ julia run.jl examples/ia_example1
 =#
-export trial_result, print_trial_result, dfe_fitness, fitness, inf_alleles, pop_counts64, 
+export fitness, inf_alleles, pop_counts64, 
     dfe_deleterious,dfe_advantageous, dfe_mixed, dfe_mod, dfe_neutral, dfe_fixed 
 
-@doc """ type trial_result
-  Julia type that stores both the parameters and the results of a trial.
-"""
-type trial_result
-  nn_simtype::Int64
-  n::Int64    # sample size, must be <= N
-  N::Int64    # popsize
-  N_mu::Float64  # N*mu, population mutation rate.  theta = 2*N_mu
-  ngens::Int64
-  burn_in::Float64  # The number of generations of burn-in is N/mu + 50
-  dfe::Function
-  dfe_str::AbstractString
-  use_poplist::Bool
-  mean_fitness::Float64
-  expected_richness::Float64  # sum_{i=0}^{n-1} theta/(theta+i) where theta = 2*N_mu.
-  average_richness::Float64   # Average number of traits in populations
-  stderr_richness::Float64
-  expected_w_homoz::Float64
-  w_homoz::Float64
-  stderr_w_homoz::Float64
-  IQV::Float64
-  stderr_IQV::Float64
-end
 
+#=
 # Constructor that sets the parameters
 function trial_result( nn_simtype::Int64, n::Int64, N::Int64, N_mu::Float64, ngens::Int64,  
     burn_in::Float64=2.0, dfe::Function=dfe_neutral, 
@@ -41,7 +18,9 @@ function trial_result( nn_simtype::Int64, n::Int64, N::Int64, N_mu::Float64, nge
   add_expected_richness( tr )
   tr
 end
+=#
 
+#=
 function print_trial_result( tr::trial_result )
   if tr.nn_simtype == 1
     println("\ninfinite alleleles model")
@@ -67,7 +46,9 @@ function print_trial_result( tr::trial_result )
   println("stderr_IQV: ",tr.stderr_IQV)
   println("use_poplist: ",tr.use_poplist)
 end
+=#
 
+#=
 function add_expected_richness( tr::trial_result )
   sum = 0.0
   theta = 2*tr.N_mu
@@ -76,6 +57,7 @@ function add_expected_richness( tr::trial_result )
   end
   tr.expected_richness = theta*sum
 end
+=#
 
 @doc """ function dfe_fitness( p::Int64, dfe::Function, fitness_table::Dict{Int64,Float64} )
 Fitness function as saveed in dictionary fitness_table.

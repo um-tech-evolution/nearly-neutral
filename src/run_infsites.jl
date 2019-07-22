@@ -9,9 +9,10 @@ This file contains functions for the infinite sites model in support of the Near
 Author:  Alden H. Wright, Department of Computer Science, Univeristy of Montana, Missoula, MT 59812 USA
     alden.wright@umontana.edu
 =#
+using Dates
 include("../src/InfSites.jl")
 
-type infs_result_type
+mutable struct infs_result_type
   nn_simtype::Int64
   N::Int64
   N_mu::Float64
@@ -80,34 +81,34 @@ function is_run_trials( mu_list_flag::Bool=false)
   N = N_list[1]
   if !mu_list_flag
     tr = infs_result( nn_simtype, N, N_mu_list[1], ngens, dfe, dfe_str )
-    is_writeheader(STDOUT, N_list, tr, mu_list_flag=mu_list_flag )
+    is_writeheader(Base.stdout, N_list, tr, mu_list_flag=mu_list_flag )
     is_writeheader(stream, N_list, tr, mu_list_flag=mu_list_flag )
     for N_mu in N_mu_list
       for N in N_list
         tr = infs_result( nn_simtype, N, N_mu, ngens, dfe, dfe_str )
         is_run_trial( tr )
-        is_writerow(STDOUT, trial, tr )
+        is_writerow(Base.stdout, trial, tr )
         is_writerow(stream, trial, tr )
         Base.flush(stream)
         #print_infs_result( tr )
-        Base.flush(STDOUT)
+        Base.flush(Base.stdout)
         trial += 1
       end
     end
   else  # if mu_list_flag
     tr = infs_result( nn_simtype, N, N*mu_list[1], ngens, dfe, dfe_str )
-    is_writeheader(STDOUT, N_list, tr, mu_list_flag=mu_list_flag )
+    is_writeheader(Base.stdout, N_list, tr, mu_list_flag=mu_list_flag )
     is_writeheader(stream, N_list, tr, mu_list_flag=mu_list_flag )
     for mu in mu_list
       for N in N_list
         N_mu = N*mu
         tr = infs_result( nn_simtype, N, N_mu, ngens, dfe, dfe_str )
         is_run_trial( tr )
-        is_writerow(STDOUT, trial, tr, mu_list_flag=mu_list_flag )
+        is_writerow(Base.stdout, trial, tr, mu_list_flag=mu_list_flag )
         is_writerow(stream, trial, tr, mu_list_flag=mu_list_flag )
         Base.flush(stream)
         #print_infs_result( tr )
-        Base.flush(STDOUT)
+        Base.flush(Base.stdout)
         trial += 1
       end
     end
@@ -116,18 +117,18 @@ end
 
 function is_run_trial( tr::infs_result_type )
   if tr.nn_simtype == 2
-    sc = inf_sites( tr.N, tr.N_mu, tr.ngens, dfe=tr.dfe )
+    sc = InfSites.inf_sites( tr.N, tr.N_mu, tr.ngens, dfe=tr.dfe )
     tr.number_extinctions = length(sc.extinct)
     tr.number_fixations = length(sc.fixed)
     tr.count_fixed_del = sc.count_fixed_del
     tr.count_fixed_adv = sc.count_fixed_adv
-    tr.average_time_to_extinction = average_time_to_extinction(sc)
-    tr.average_time_to_fixation = average_time_to_fixation(sc)
-    tr.average_fitness_extinct = average_fitness_extinct(sc)
-    tr.average_fitness_fixed = average_fitness_fixed(sc)
-    tr.average_fitness_all = average_fitness_all(sc)
-    (tr.average_sites_per_gen, tr.stderr_sites_per_gen) = sites_per_gen(sc)
-    (tr.average_heterozygosity_per_gen, tr.stderr_heterozygosity_per_gen) = heterozygosity_per_gen(sc)
+    tr.average_time_to_extinction = InfSites.average_time_to_extinction(sc)
+    tr.average_time_to_fixation = InfSites.average_time_to_fixation(sc)
+    tr.average_fitness_extinct = InfSites.average_fitness_extinct(sc)
+    tr.average_fitness_fixed = InfSites.average_fitness_fixed(sc)
+    tr.average_fitness_all = InfSites.average_fitness_all(sc)
+    (tr.average_sites_per_gen, tr.stderr_sites_per_gen) = InfSites.sites_per_gen(sc)
+    (tr.average_heterozygosity_per_gen, tr.stderr_heterozygosity_per_gen) = InfSites.heterozygosity_per_gen(sc)
     return tr
   else
     println("nn_simtype ",nn_simtype," not implemented")
@@ -143,16 +144,17 @@ function is_writeheader(stream::IO, N_list::Vector{Int64},
   dfe_params = [:dfe_adv_prob, :dfe_adv_alpha, :dfe_adv_theta, :dfe_disadv_prob, :dfe_disadv_alpha, :dfe_disadv_theta]
   param_strings = [
     "# $(string(Dates.today()))",
-    (isdefined(:seed) ? "# random number seed: $(seed)": "# no random number seed defined"),
-    "# $((tr.nn_simtype==1)?"infinite alleles model":"infinite_sites_model")",
+    (isdefined(Main,:seed) ? "# random number seed: $(seed)" : "# no random number seed defined"),
+    #"# $((tr.nn_simtype==1) ? "infinite alleles model" :"infinite_sites_model")",
+    "# infinite_sites_model",
     "# N_list=\"$(N_list)\"",
-    (mu_list_flag ? "# mu_list=\"$(mu_list)\"": "# N_mu_list=\"$(N_mu_list)\""),
+    (mu_list_flag ? "# mu_list=\"$(mu_list)\"" : "# N_mu_list=\"$(N_mu_list)\""),
     "# ngens=$(tr.ngens)",
     "# dfe=$(tr.dfe)",
     "# dfe_str=$(tr.dfe_str)"
     ]
   for dp in dfe_params
-    if isdefined(dp)
+    if isdefined(Main,dp)
       Base.push!(param_strings,"# $(string(dp))=$(eval(dp))")
     end
   end
@@ -160,7 +162,7 @@ function is_writeheader(stream::IO, N_list::Vector{Int64},
   first_heads = [
     "type",
     #  "n", 
-    "N", (mu_list_flag ? "mu":"N_mu")]
+    "N", (mu_list_flag ? "mu" : "N_mu")]
   mid_heads = []
   last_heads =
   [ "num_extinct", 
@@ -184,7 +186,7 @@ end
 
 function is_writerow(stream::IO, trial::Int64, tr::infs_result_type; mu_list_flag::Bool=false )
   first = Any[
-    (isdefined(:type_str) ? type_str :trial),
+    isdefined(Main,:type_str0) ? type_str : trial,
     #tr.n,           # sample size
     tr.N,           # popsize
     mu_list_flag ? tr.N_mu/tr.N : tr.N_mu,          

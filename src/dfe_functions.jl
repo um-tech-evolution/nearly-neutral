@@ -3,9 +3,11 @@ Definitions of the dfe (distribution of fitness effects) functions which define
    selection coefficients in terms of Gamma distributions.
 Split off from nn_poplist.jl  on 5/14/18.
 =#
+using Distributions
+
 function dfe_deleterious( x::Int64; alpha::Float64=0.2, beta::Float64=0.5 )
   global dist_deleterious
-  if !isdefined(:dist_deleterious)
+  if !isdefined(Main,:dist_deleterious)
     dist_deleterious = Distributions.Gamma(alpha,beta)
   end
   return max(0.1,1.0-rand(dist_deleterious))
@@ -13,7 +15,7 @@ end
   
 function dfe_advantageous( x::Int64; alpha::Float64=1.0, beta::Float64=0.5 )
   global dist_advantageous
-  if !isdefined(:dist_advantageous)
+  if !isdefined(Main,:dist_advantageous)
     dist_advantageous = Distributions.Gamma(alpha,beta)
   end
   return 1.0+rand(dist_advantageous)
@@ -25,11 +27,11 @@ Mixed advantageous and deleterious.
 
 function dfe_mixed( x::Int64; adv_probability::Float64=0.2, alpha_disadv::Float64=0.2, alpha_adv::Float64=1.0, beta_disadv::Float64=1.0, beta_adv::Float64=0.05 )
   global dist_deleterious
-  if !isdefined(:dist_deleterious)
+  if !isdefined(Main,:dist_deleterious)
     dist_deleterious = Distributions.Gamma(alpha_disadv,beta_disadv)
   end
   global dist_advantageous
-  if !isdefined(:dist_advantageous)
+  if !isdefined(Main,:dist_advantageous)
     dist_advantageous = Distributions.Gamma(alpha_adv,beta_adv)
   end
   rand() < adv_probability ? 1.0+rand(dist_advantageous) : max(0.01,1.0-rand(dist_deleterious))

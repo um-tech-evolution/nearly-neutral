@@ -3,7 +3,7 @@
 Julia source code for the simulations in support of a paper on the applications of
 the nearly neutral theory from population genetics to cultural evolution.  The simulation
 code is in Julia, while code for producing the plots is written in R.
-As of June 2018, the code is almost compatible with Julia v. 7 with only a few 
+As of July 2019, the code is compatible with Julia v. 1.1 with only one
 deprecation warnings.
 
 This paper is in progress, and does not yet have a definite title.

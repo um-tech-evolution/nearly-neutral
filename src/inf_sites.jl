@@ -47,3 +47,15 @@ function inf_sites( N::Int64, N_mu::Float64, ngens::Int64; dfe::Function=dfe_neu
   sc
 end
 
+@doc """ function dfe_fitness( p::Int64, dfe::Function, fitness_table::Dict{Int64,Float64} )
+Fitness function as saved in dictionary fitness_table.
+"""
+function dfe_fitness( p::Int64, dfe::Function, fitness_table::Dict{Int64,Float64} )
+  val = get(fitness_table,p,-1.0)
+  if val == -1.0   # p is not in fitness table
+    val = dfe( p )
+    fitness_table[p] = val
+  end
+  val
+end
+
