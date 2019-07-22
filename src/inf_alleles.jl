@@ -5,23 +5,14 @@ Author:  Alden H. Wright, Department of Computer Science, Univeristy of Montana,
 Example run:
 [experiments]$ julia run.jl examples/ia_example1
 =#
+using QuadGK
 export fitness, inf_alleles, pop_counts64, 
     dfe_deleterious,dfe_advantageous, dfe_mixed, dfe_mod, dfe_neutral, dfe_fixed 
 
+integrand(x,theta) = theta/x*(1-x)^(theta-1)
 
 #=
-# Constructor that sets the parameters
-function trial_result( nn_simtype::Int64, n::Int64, N::Int64, N_mu::Float64, ngens::Int64,  
-    burn_in::Float64=2.0, dfe::Function=dfe_neutral, 
-    dfe_str::AbstractString="neutral"; use_poplist=false )
-  tr = trial_result( nn_simtype, n, N, N_mu, ngens, burn_in, dfe, dfe_str, use_poplist, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 )
-  add_expected_richness( tr )
-  tr
-end
-=#
-
-#=
-function print_trial_result( tr::trial_result )
+function print_trial_result( tr::InfAlleles.trial_result )
   if tr.nn_simtype == 1
     println("\ninfinite alleleles model")
   else
@@ -58,6 +49,15 @@ function add_expected_richness( tr::trial_result )
   tr.expected_richness = theta*sum
 end
 =#
+function add_expected_richness( tr::trial_result )
+  theta = 2*tr.N_mu
+  println("N: ",tr.N,"  N_mu: ",tr.N_mu,"  integrand(1/tr.N,theta): ",integrand(1/tr.N,theta))
+  result, err = quadgk( x->integrand(x,theta), 1.0/tr.N, 1.0 )
+  result += theta
+  #println("add_expected richness result: ",result,"  err: ",err)
+  tr.expected_richness = result
+end
+
 
 @doc """ function dfe_fitness( p::Int64, dfe::Function, fitness_table::Dict{Int64,Float64} )
 Fitness function as saveed in dictionary fitness_table.

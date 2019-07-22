@@ -106,6 +106,7 @@ function add_stats_to_trial_result!( tr::InfAlleles.trial_result, poplist::Vecto
   tr.IQV = Statistics.mean(IQV_list)
   @assert isapprox( tr.stderr_IQV, stddev(IQV_list)/sqrt(length(IQV_list)) )
   tr.stderr_IQV = stddev(IQV_list)/sqrt(length(IQV_list))
+  #tr.entropy = map(entropy,pcounts)
 end
 
 @doc """ function ia_writeheader()

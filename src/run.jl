@@ -12,7 +12,7 @@ push!(LOAD_PATH,"../src/")
 #using InfAlleles
 
 if length(ARGS) == 0
-  simname = "../experiments/examples/ia_example1"
+  simname = "../src/examples/ia_example1"
 else
   simname = ARGS[1]
   if length(ARGS) >= 2   # second command-line argument is random number seed
