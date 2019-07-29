@@ -1,5 +1,6 @@
 # compute the entropy of a probability distribution given as a function p
 # defined as a hash table over integers
+# IMPORTANT:  One must include "use_populist=true" in the configuration file.
 
 #include("types.jl")
 export pop_to_dist, entropy, relative_entropy
