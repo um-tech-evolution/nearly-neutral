@@ -52,7 +52,7 @@ end
 function add_expected_richness( tr::trial_result )
   theta = 2*tr.N_mu
   try
-    println("N: ",tr.N,"  N_mu: ",tr.N_mu,"  integrand(1/tr.N,theta): ",integrand(1/tr.N,theta))
+    #println("N: ",tr.N,"  N_mu: ",tr.N_mu,"  integrand(1/tr.N,theta): ",integrand(1/tr.N,theta))
     result, err = quadgk( x->integrand(x,theta), 1.0/tr.N, 1.0 )
   catch
     println("computation of integrand failed. expected richness result will be incorrect.")
