@@ -93,20 +93,38 @@ end
 function add_stats_to_trial_result!( tr::InfAlleles.trial_result, poplist::Vector{Population} )
   pcounts = map(pop_counts64,poplist)
   richness_list = map(x->length(x),pcounts)
-  @assert isapprox( tr.average_richness, Statistics.mean(richness_list) )
+  #@assert isapprox( tr.average_richness, Statistics.mean(richness_list) )
+  if !isapprox( tr.average_richness, Statistics.mean(richness_list) )
+    println("warning: tr.average_richness not approximately Statistics.mean(richness_list)" )
+  end
   tr.average_richness = Statistics.mean(richness_list)
-  @assert isapprox( tr.stderr_richness, stddev(richness_list)/sqrt(length(richness_list) ) ) 
+  #@assert isapprox( tr.stderr_richness, stddev(richness_list)/sqrt(length(richness_list) ) ) 
+  if !isapprox( tr.stderr_richness, stddev(richness_list)/sqrt(length(richness_list) ) )
+    println("warning: tr.stderr_richness not approximately stddev(richness_list)/sqrt(length(richness_list) )" )
+  end
   tr.stderr_richness = stddev(richness_list)/sqrt(length(richness_list))
   w_homoz_list = map(watterson_homozygosity,pcounts)
-  @assert isapprox( tr.w_homoz, Statistics.mean(w_homoz_list ) )
+  #@assert isapprox( tr.w_homoz, Statistics.mean(w_homoz_list ) )
+  if !isapprox( tr.w_homoz, Statistics.mean(w_homoz_list) )
+    println("warning: tr.w_homoz not approximately Statistics.mean(richness_list)" )
+  end
   tr.w_homoz = Statistics.mean(w_homoz_list)
   tr.stderr_w_homoz = stddev(w_homoz_list)/sqrt(length(w_homoz_list) )
   IQV_list = map(IQV,pcounts)
-  @assert isapprox( tr.IQV, Statistics.mean(IQV_list) )
+  #@assert isapprox( tr.IQV, Statistics.mean(IQV_list) )
+  if !isapprox( tr.IQV, Statistics.mean(IQV_list) )
+    println("warning: tr.IQV not approximately Statistics.mean(IQV_list)" )
+  end
   tr.IQV = Statistics.mean(IQV_list)
-  @assert isapprox( tr.stderr_IQV, stddev(IQV_list)/sqrt(length(IQV_list)) )
+  #@assert isapprox( tr.stderr_IQV, stddev(IQV_list)/sqrt(length(IQV_list)) )
+  if !isapprox( tr.stderr_IQV, stddev(IQV_list)/sqrt(length(IQV_list)) )
+    println("warning: tr.w_homoz not approximately stddev(IQV_list)/sqrt(length(IQV_list))" )
+  end
   tr.stderr_IQV = stddev(IQV_list)/sqrt(length(IQV_list))
   #tr.entropy = map(entropy,pcounts)
+  entropy_list = map(InfAlleles.entropy,pcounts)
+  tr.entropy = Statistics.mean(entropy_list)
+  tr.stderr_entropy = stddev(entropy_list)/sqrt(length(entropy_list))
 end
 
 @doc """ function ia_writeheader()
@@ -149,7 +167,9 @@ function ia_writeheader(stream::IO, popsize_multiplier_list::Vector{Int64}, N_li
     "w_heteroz",
     "stderr_heteroz",
     "IQV",
-    "stderr_IQV"
+    "stderr_IQV",
+    "entropy",
+    "stderr_entropy"
   ] 
   line = join(vcat( first_heads, last_heads), ",")
   write(stream, line, "\n")
@@ -178,7 +198,9 @@ function ia_writerow(stream::IO, trial::Int64, tr::InfAlleles.trial_result; mu_l
       1.0-tr.w_homoz,
       tr.stderr_w_homoz,
       tr.IQV,
-      tr.stderr_IQV
+      tr.stderr_IQV,
+      tr.entropy,
+      tr.stderr_entropy
     ]
   end
   line = join( vcat( first, mid ), "," )

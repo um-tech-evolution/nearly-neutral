@@ -8,7 +8,7 @@ end
 const nn_simtype = 1    # nearly neutral infinite alleles
 type_str = "M2"
 const mu_list_flag = false
-@everywhere const N_list     = [25,100,400]     # popsize
+const N_list     = [25,100,400]     # popsize
 const N_mu_list= [1.0,2.0]   # Mutation rate as a multiple of 1.0/N
 const L = 1           # number of loci
 const ngens = 40000      # Generations after burn-in
