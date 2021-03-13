@@ -7,12 +7,12 @@ Examples: (run from directory evotech/nearly-neutral/src):
 using Random
 using Distributed
 include("dfe_functions.jl")   # These need to be defined to read in the infinite sites configuration files
-push!(LOAD_PATH,"../src/")
+#push!(LOAD_PATH,"../src/")
 #include("InfAlleles.jl")
-#using InfAlleles
+#using Main.InfAlleles
 
 if length(ARGS) == 0
-  simname = "../src/examples/ia_example1"
+  simname = "../experiments/examples/ia_example1"
 else
   simname = ARGS[1]
   if length(ARGS) >= 2   # second command-line argument is random number seed
@@ -30,7 +30,7 @@ if !isdefined(Main,:mu_list_flag)
   mu_list_flag=false
 end
 if nn_simtype==1
-  using InfAlleles
+  using Main.InfAlleles
   println("infinite alleles model")
   include("run_infalleles.jl")
   ia_run_trials( mu_list_flag )

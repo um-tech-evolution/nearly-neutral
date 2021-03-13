@@ -5,9 +5,6 @@ using Random
 using QuadGK
 import Random.seed!
 
-const Population = Array{Int64,1}
-const PopList = Array{Population,1}
-const DIST_TYPE = Dict{Int64,Float64}
 if !@isdefined(MyInt)
   const MyInt = UInt8 # When called by a fuction in Main.CGP, may have to agree with MyInt defined in CGP.jl
 end
