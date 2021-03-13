@@ -1,9 +1,9 @@
 include("../src/aliases.jl")
 include("../src/entropy.jl")
 
-P1 = [1,2,3,4]
-P2 = [5,6,6,7]
-P3 = [3,4,5,5]
+P1 = Any[1,2,3,4]
+P2 = Any[5,6,6,7]
+P3 = Any[3,4,5,5]
 
 m11 = mutual_information([P1,P1])
 m12 = mutual_information([P1,P2])
@@ -13,8 +13,8 @@ m123 = mutual_information([P1,P2,P3])
 
 println("m11: ",m11,"  m12: ",m12,"  m11: ",m11,"  m23: ",m23,"  m123: ",m123)
 
-Pa = [1,1,2]   # For Dewar paper, p1 = 2/3
-Pb = [1,2,2]   # For Dewar paper, p2 = 1/3
+Pa = Any[1,1,2]   # For Dewar paper, p1 = 2/3
+Pb = Any[1,2,2]   # For Dewar paper, p2 = 1/3
 mPaPb =  mutual_information([P1,P2])
 println("mPaPb: ",mPaPb)
 
