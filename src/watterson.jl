@@ -1,3 +1,5 @@
+# to run from the nearly-neutral/src folder:
+# julia -L InfAlleles.jl run.jl ../../NearlyNeutralPaper/results21/Richness_figure3/ngens200K/nn_neut_Nmulist_fm45_N25_6400   
 #=
 Estimates of theta = N_e mu based on Watterson "The homozygosity test of neutrality" (1978).
 

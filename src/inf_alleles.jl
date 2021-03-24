@@ -9,8 +9,6 @@ using QuadGK
 export fitness, inf_alleles, pop_counts64, 
     dfe_deleterious,dfe_advantageous, dfe_mixed, dfe_mod, dfe_neutral, dfe_fixed 
 
-integrand(x,theta) = theta/x*(1-x)^(theta-1)
-
 #=
 function print_trial_result( tr::InfAlleles.trial_result )
   if tr.nn_simtype == 1
@@ -49,6 +47,11 @@ function add_expected_richness( tr::trial_result )
   tr.expected_richness = theta*sum
 end
 =#
+
+# Integrand of the equation 3.92 of Ewens (2004) which gives the population expectation of k (richness)
+#   for the infinite alleles model
+integrand(x,theta) = theta/x*(1-x)^(theta-1)
+# Adds expected richness computed by eq. 3.92 of Ewens (2004) to tr.
 function add_expected_richness( tr::trial_result )
   theta = 2*tr.N_mu
   println("N: ",tr.N,"  N_mu: ",tr.N_mu,"  integrand(1/tr.N,theta): ",integrand(1/tr.N,theta))
